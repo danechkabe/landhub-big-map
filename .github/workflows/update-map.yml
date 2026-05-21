@@ -1,0 +1,67 @@
+name: Update Big Map Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "*/15 * * * *"
+
+concurrency:
+  group: update-big-map-data
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip requests
+
+      - name: Refresh parcels data
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          python scripts/update_map_data.py --token "$NOTION_TOKEN"
+
+      - name: Commit updated data
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BRANCH="${GITHUB_REF_NAME:-main}"
+
+          for attempt in 1 2 3; do
+            git fetch origin "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            python scripts/update_map_data.py --token "$NOTION_TOKEN"
+
+            if git diff --quiet -- data/parcels.json; then
+              echo "No map changes"
+              exit 0
+            fi
+
+            git add data/parcels.json
+            git commit -m "Update map data"
+
+            if git push origin HEAD:"$BRANCH"; then
+              exit 0
+            fi
+
+            echo "Push failed on attempt $attempt, retrying from latest origin/$BRANCH"
+            git reset --hard "origin/$BRANCH"
+          done
+
+          echo "Failed to push updated data after retries"
+          exit 1
