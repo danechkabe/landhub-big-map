@@ -55,7 +55,7 @@ body {
 
 .hero-bar {
   display: grid;
-  grid-template-columns: auto minmax(620px, 1fr);
+  grid-template-columns: auto minmax(520px, 55%);
   gap: 22px;
   align-items: center;
   padding: 18px 22px;
@@ -71,9 +71,29 @@ body {
 
 .filters {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
+  grid-template-columns: auto 1fr 1fr;
+  gap: 14px;
   align-items: center;
+}
+
+.verified-toggle {
+  align-self: end;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid rgba(24, 33, 20, 0.72);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.verified-toggle.is-active {
+  border-color: rgba(42, 168, 74, 0.34);
+  background: rgba(84, 182, 109, 0.17);
 }
 
 .range-filter {
@@ -83,7 +103,7 @@ body {
 .filter-title {
   margin-bottom: 7px;
   color: var(--ink);
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: 0.02em;
 }
@@ -251,17 +271,22 @@ body {
 .parcel-details h2 {
   max-width: calc(100% - 38px);
   margin: 0 0 8px;
-  font-size: clamp(22px, 2.1vw, 32px);
+  font-size: clamp(26px, 2.5vw, 38px);
   line-height: 0.95;
   letter-spacing: -0.04em;
 }
 
 .filter-warning {
+  min-height: 16px;
   margin: -1px 0 8px;
   color: #c92727;
   font-size: 12px;
   font-weight: 900;
   line-height: 1.2;
+}
+
+.filter-warning--empty {
+  visibility: hidden;
 }
 
 .details-list {
@@ -288,19 +313,36 @@ body {
   text-transform: uppercase;
 }
 
-.detail-row strong,
-.price-card strong {
-  font-size: 13px;
+.detail-row strong {
+  font-size: 18px;
   line-height: 1.2;
+}
+
+.photo-grid {
+  display: grid;
+  min-height: 0;
+  margin: 10px 0;
+  gap: 7px;
+}
+
+.photo-grid--1 {
+  grid-template-columns: 1fr;
+}
+
+.photo-grid--2,
+.photo-grid--3,
+.photo-grid--4 {
+  grid-template-columns: 1fr 1fr;
 }
 
 .parcel-photo {
   appearance: none;
+  position: relative;
   display: block;
   width: 100%;
+  aspect-ratio: 1 / 1;
   min-height: 0;
   padding: 0;
-  margin: 10px 0;
   overflow: hidden;
   border: 1px solid rgba(26, 33, 20, 0.08);
   border-radius: 20px;
@@ -320,13 +362,35 @@ body {
   border-radius: 18px;
 }
 
+.parcel-photo::after {
+  position: absolute;
+  right: 4%;
+  bottom: 4%;
+  width: 16%;
+  aspect-ratio: 1284 / 682;
+  background: url("./assets/watermark_overlay.png") center / contain no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
+.lightbox-stage::after {
+  position: absolute;
+  right: 4%;
+  bottom: 4%;
+  width: min(14vw, 180px);
+  aspect-ratio: 1284 / 682;
+  background: url("./assets/watermark_overlay.png") center / contain no-repeat;
+  content: "";
+  pointer-events: none;
+}
+
 .price-card {
   margin-top: 0;
   background: color-mix(in srgb, var(--accent-warm) 20%, white);
 }
 
 .price-card strong {
-  font-size: 21px;
+  font-size: 27px;
 }
 
 .panel-actions {
@@ -443,9 +507,10 @@ body {
 }
 
 .lightbox-close {
-  position: fixed;
-  top: 22px;
-  right: 22px;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 3;
   width: 42px;
   height: 42px;
   font-size: 31px;
@@ -453,9 +518,9 @@ body {
 }
 
 .lightbox-tools {
-  position: fixed;
-  top: 22px;
-  left: 22px;
+  position: absolute;
+  top: 12px;
+  left: 12px;
   z-index: 2;
   display: flex;
   gap: 8px;
@@ -469,6 +534,7 @@ body {
 }
 
 .lightbox-stage {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -486,6 +552,35 @@ body {
   transform-origin: center center;
   user-select: none;
   will-change: transform;
+}
+
+.lightbox-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 58px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.lightbox-arrow--prev {
+  left: 12px;
+}
+
+.lightbox-arrow--next {
+  right: 12px;
 }
 
 @media (max-width: 1200px) {
@@ -514,12 +609,22 @@ body {
   }
 
   .hero-bar {
+    display: grid;
+    grid-template-columns: 1fr;
     padding: 16px 18px;
   }
 
   .filters {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.48);
     grid-template-columns: 1fr;
     gap: 14px;
+  }
+
+  .verified-toggle {
+    justify-self: start;
   }
 
   .map-layout,
@@ -578,11 +683,11 @@ body {
 
   .detail-row strong,
   .price-card strong {
-    font-size: 12px;
+    font-size: 16px;
   }
 
   .parcel-photo {
-    margin: 8px 0;
+    margin: 0;
   }
 
   .parcel-photo img {
@@ -591,7 +696,7 @@ body {
   }
 
   .price-card strong {
-    font-size: 19px;
+    font-size: 23px;
   }
 }
 

@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <title>LandHub Big Map</title>
+    <title>LandHub map</title>
     <meta
       name="description"
       content="Велика карта активних ділянок LandMatch Parcels."
@@ -29,8 +29,11 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-bar">
-          <h1>LandHub Big Map</h1>
+          <h1>LandHub map</h1>
           <section class="filters" aria-label="Фільтри карти">
+            <button id="verified-toggle" class="verified-toggle" type="button" aria-pressed="false">
+              Тільки перевірені ділянки ▢
+            </button>
             <div class="range-filter" data-filter="area">
               <div class="filter-title">Площа ділянки</div>
               <div class="range-values">
@@ -85,7 +88,9 @@
         <button id="lightbox-zoom-reset" type="button" aria-label="Скинути масштаб">100%</button>
       </div>
       <div id="lightbox-stage" class="lightbox-stage">
+        <button id="lightbox-prev" class="lightbox-arrow lightbox-arrow--prev" type="button" aria-label="Попереднє фото">‹</button>
         <img id="lightbox-image" alt="" />
+        <button id="lightbox-next" class="lightbox-arrow lightbox-arrow--next" type="button" aria-label="Наступне фото">›</button>
       </div>
     </div>
 

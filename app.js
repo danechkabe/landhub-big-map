@@ -29,6 +29,7 @@ const priceMaxInput = document.getElementById("price-max");
 const priceMinLabel = document.getElementById("price-min-label");
 const priceMaxLabel = document.getElementById("price-max-label");
 const priceRangeFill = document.getElementById("price-range-fill");
+const verifiedToggleNode = document.getElementById("verified-toggle");
 const lightboxNode = document.getElementById("photo-lightbox");
 const lightboxImageNode = document.getElementById("lightbox-image");
 const lightboxCloseNode = document.getElementById("lightbox-close");
@@ -36,6 +37,8 @@ const lightboxZoomInNode = document.getElementById("lightbox-zoom-in");
 const lightboxZoomOutNode = document.getElementById("lightbox-zoom-out");
 const lightboxZoomResetNode = document.getElementById("lightbox-zoom-reset");
 const lightboxStageNode = document.getElementById("lightbox-stage");
+const lightboxPrevNode = document.getElementById("lightbox-prev");
+const lightboxNextNode = document.getElementById("lightbox-next");
 
 let dataset = { categories: { landmatch: [] } };
 let markerLayer = L.layerGroup().addTo(map);
@@ -44,12 +47,15 @@ let selectedId = "";
 let lightboxScale = 1;
 let lightboxOffset = { x: 0, y: 0 };
 let lightboxDrag = null;
+let lightboxPhotos = [];
+let lightboxIndex = 0;
 
 const state = {
   areaMin: FILTERS.area.min,
   areaMax: FILTERS.area.max,
   priceMin: FILTERS.price.min,
   priceMax: FILTERS.price.max,
+  verifiedOnly: false,
 };
 
 function normalizeUrl(url) {
@@ -76,8 +82,8 @@ function formatPrice(value) {
 }
 
 function markerIcon(item, isSelected = false) {
-  const color = isSelected ? "#2aa84a" : escapeHtml(item.marker_color || "#e0b21b");
-  const symbol = isSelected ? "💚" : escapeHtml(item.marker_symbol || "💛");
+  const color = isSelected ? "#247eaf" : item.has_verified_photos ? "#2aa84a" : escapeHtml(item.marker_color || "#e0b21b");
+  const symbol = isSelected ? "💙" : item.has_verified_photos ? "💚" : escapeHtml(item.marker_symbol || "💛");
   return L.divIcon({
     className: "parcel-marker",
     html: `<div class="emoji-pin" style="--marker-accent:${color}">${symbol}</div>`,
@@ -114,16 +120,21 @@ function actionButton({ href, icon, label, modifier }) {
 }
 
 function panelMarkup(item) {
-  const photoUrl = normalizeUrl(item.photo_url);
-  const photoMarkup = photoUrl
+  const photoUrls = getPhotoUrls(item);
+  const previewUrls = photoUrls.slice(0, 4);
+  const photoMarkup = previewUrls.length
     ? `
-      <button class="parcel-photo" type="button" data-photo-url="${escapeHtml(photoUrl)}" data-photo-title="${escapeHtml(item.name)}">
-        <img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(item.name)}" loading="lazy" />
-      </button>
+      <div class="photo-grid photo-grid--${Math.min(previewUrls.length, 4)}">
+        ${previewUrls.map((url, index) => `
+          <button class="parcel-photo" type="button" data-photo-index="${index}" data-photo-title="${escapeHtml(item.name)}">
+            <img src="${escapeHtml(url)}" alt="${escapeHtml(item.name)}" loading="lazy" />
+          </button>
+        `).join("")}
+      </div>
     `
     : "";
   const filterWarning = passesFilters(item)
-    ? ""
+    ? '<div class="filter-warning filter-warning--empty">&nbsp;</div>'
     : '<div class="filter-warning">ця ділянка не підходить під новий фільтр</div>';
 
   return `
@@ -168,6 +179,22 @@ function getFilteredItems() {
   return getLandmatchItems().filter(passesFilters);
 }
 
+function getPhotoUrls(item) {
+  if (Array.isArray(item.photo_urls) && item.photo_urls.length) {
+    return item.photo_urls.map(normalizeUrl).filter(Boolean);
+  }
+  const urls = [];
+  const main = normalizeUrl(item.photo_url);
+  if (main) urls.push(main);
+  if (Array.isArray(item.extra_photo_urls)) {
+    item.extra_photo_urls.forEach((url) => {
+      const normalized = normalizeUrl(url);
+      if (normalized && !urls.includes(normalized)) urls.push(normalized);
+    });
+  }
+  return urls;
+}
+
 function getItemArea(item) {
   const value = Number(item.area_sotky);
   return Number.isFinite(value) ? value : null;
@@ -182,6 +209,7 @@ function passesFilters(item) {
   const area = getItemArea(item);
   const price = getItemPrice(item);
   if (area === null || price === null) return false;
+  if (state.verifiedOnly && !item.has_verified_photos) return false;
   return (
     area >= state.areaMin &&
     area <= state.areaMax &&
@@ -336,18 +364,28 @@ async function loadData() {
   return response.json();
 }
 
-function openLightbox(url, title) {
-  lightboxImageNode.src = url;
+function openLightbox(urls, index, title) {
+  lightboxPhotos = Array.isArray(urls) ? urls.filter(Boolean) : [];
+  if (!lightboxPhotos.length) return;
   lightboxImageNode.alt = title || "";
-  lightboxScale = 1;
-  lightboxOffset = { x: 0, y: 0 };
-  applyLightboxTransform();
+  showLightboxPhoto(index || 0);
   lightboxNode.setAttribute("aria-hidden", "false");
+}
+
+function showLightboxPhoto(index) {
+  if (!lightboxPhotos.length) return;
+  lightboxIndex = (index + lightboxPhotos.length) % lightboxPhotos.length;
+  lightboxImageNode.src = lightboxPhotos[lightboxIndex];
+  lightboxPrevNode.hidden = lightboxPhotos.length < 2;
+  lightboxNextNode.hidden = lightboxPhotos.length < 2;
+  resetLightboxZoom();
 }
 
 function closeLightbox() {
   lightboxNode.setAttribute("aria-hidden", "true");
   lightboxImageNode.removeAttribute("src");
+  lightboxPhotos = [];
+  lightboxIndex = 0;
 }
 
 function applyLightboxTransform() {
@@ -374,17 +412,37 @@ function registerEvents() {
   areaMaxInput.addEventListener("input", () => handleFilterInput("area", "max"));
   priceMinInput.addEventListener("input", () => handleFilterInput("price", "min"));
   priceMaxInput.addEventListener("input", () => handleFilterInput("price", "max"));
+  verifiedToggleNode.addEventListener("click", () => {
+    state.verifiedOnly = !state.verifiedOnly;
+    verifiedToggleNode.classList.toggle("is-active", state.verifiedOnly);
+    verifiedToggleNode.setAttribute("aria-pressed", state.verifiedOnly ? "true" : "false");
+    verifiedToggleNode.textContent = state.verifiedOnly
+      ? "Тільки перевірені ділянки ✅"
+      : "Тільки перевірені ділянки ▢";
+    renderMarkers({ fit: true });
+    refreshSelectedPanel();
+  });
 
   panelContentNode.addEventListener("click", (event) => {
     const button = event.target.closest(".parcel-photo");
     if (!button) return;
-    openLightbox(button.dataset.photoUrl, button.dataset.photoTitle);
+    const item = findSelectedItem();
+    if (!item) return;
+    openLightbox(getPhotoUrls(item), Number(button.dataset.photoIndex || 0), button.dataset.photoTitle);
   });
 
   lightboxCloseNode.addEventListener("click", closeLightbox);
   lightboxZoomInNode.addEventListener("click", () => zoomLightbox(0.25));
   lightboxZoomOutNode.addEventListener("click", () => zoomLightbox(-0.25));
   lightboxZoomResetNode.addEventListener("click", resetLightboxZoom);
+  lightboxPrevNode.addEventListener("click", () => showLightboxPhoto(lightboxIndex - 1));
+  lightboxNextNode.addEventListener("click", () => showLightboxPhoto(lightboxIndex + 1));
+  lightboxNode.addEventListener("click", (event) => {
+    if (event.target === lightboxNode) closeLightbox();
+  });
+  lightboxStageNode.addEventListener("click", (event) => {
+    if (event.target === lightboxStageNode) closeLightbox();
+  });
   lightboxStageNode.addEventListener("wheel", (event) => {
     event.preventDefault();
     zoomLightbox(event.deltaY < 0 ? 0.15 : -0.15);

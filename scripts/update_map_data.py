@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fetch active LandMatch Parcels from Notion for LandHub Big Map."""
+"""Fetch active LandMatch Parcels from Notion for LandHub map."""
 
 from __future__ import annotations
 
@@ -209,6 +209,11 @@ def normalize_page(
         return None
 
     marker = LANDMATCH_META
+    main_photo_url = extract_file_url(properties.get("Photo"))
+    extra_photo_urls = extract_file_urls(properties.get("Фотографії"))
+    photo_urls = ([main_photo_url] if main_photo_url else []) + [
+        url for url in extra_photo_urls if url and url != main_photo_url
+    ]
     return {
         "id": str(page.get("id") or ""),
         "source": source_key,
@@ -218,7 +223,10 @@ def normalize_page(
         "area_sotky": extract_number_value(properties.get("Area Sotky")),
         "purpose": (extract_rich_text(properties.get("Цільове призначення")) or "—").strip(),
         "distance_to_kyiv": (extract_rich_text(properties.get("до Києва")) or "—").strip(),
-        "photo_url": extract_file_url(properties.get("Photo")),
+        "photo_url": main_photo_url,
+        "extra_photo_urls": extra_photo_urls,
+        "photo_urls": photo_urls,
+        "has_verified_photos": bool(extra_photo_urls),
         "price": (extract_rich_text(properties.get("Наша ціна")) or "—").strip(),
         "price_usd": parse_price_usd(extract_rich_text(properties.get("Наша ціна"))),
         "google_maps_url": resolved_map_url,
@@ -299,9 +307,15 @@ def parse_price_usd(value: str) -> int | None:
 
 
 def extract_file_url(property_value: dict[str, Any] | None) -> str:
+    urls = extract_file_urls(property_value)
+    return urls[0] if urls else ""
+
+
+def extract_file_urls(property_value: dict[str, Any] | None) -> list[str]:
     if not property_value:
-        return ""
+        return []
     files = property_value.get("files") or []
+    urls: list[str] = []
     for item in files:
         if not isinstance(item, dict):
             continue
@@ -312,8 +326,8 @@ def extract_file_url(property_value: dict[str, Any] | None) -> str:
         else:
             url = ""
         if url:
-            return str(url).strip()
-    return ""
+            urls.append(str(url).strip())
+    return urls
 
 
 def resolve_maps_url(url: str, *, session: requests.Session) -> str:
