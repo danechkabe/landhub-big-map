@@ -215,10 +215,12 @@ def normalize_page(
         "name": (extract_title(properties.get("Name")) or "Без назви").strip(),
         "cadastral": extract_rich_text(properties.get("Кадастровий номер")).strip(),
         "area": (extract_rich_text(properties.get("Площа")) or "—").strip(),
+        "area_sotky": extract_number_value(properties.get("Area Sotky")),
         "purpose": (extract_rich_text(properties.get("Цільове призначення")) or "—").strip(),
         "distance_to_kyiv": (extract_rich_text(properties.get("до Києва")) or "—").strip(),
         "photo_url": extract_file_url(properties.get("Photo")),
         "price": (extract_rich_text(properties.get("Наша ціна")) or "—").strip(),
+        "price_usd": parse_price_usd(extract_rich_text(properties.get("Наша ціна"))),
         "google_maps_url": resolved_map_url,
         "notion_url": str(page.get("url") or "").strip(),
         "olx_url": extract_url(properties.get("Посилання на OLX")),
@@ -257,6 +259,43 @@ def extract_url(property_value: dict[str, Any] | None) -> str:
     if not property_value:
         return ""
     return str(property_value.get("url") or "").strip()
+
+
+def extract_number_value(property_value: dict[str, Any] | None) -> float | None:
+    if not property_value:
+        return None
+    if property_value.get("type") == "number":
+        value = property_value.get("number")
+        return float(value) if isinstance(value, (int, float)) else None
+    if property_value.get("type") == "formula":
+        formula = property_value.get("formula") or {}
+        if formula.get("type") == "number":
+            value = formula.get("number")
+            return float(value) if isinstance(value, (int, float)) else None
+        if formula.get("type") == "string":
+            return parse_float(formula.get("string"))
+    if property_value.get("type") == "rollup":
+        rollup = property_value.get("rollup") or {}
+        if rollup.get("type") == "number":
+            value = rollup.get("number")
+            return float(value) if isinstance(value, (int, float)) else None
+    text = extract_rich_text(property_value)
+    return parse_float(text)
+
+
+def parse_float(value: Any) -> float | None:
+    raw = str(value or "").strip().replace(",", ".")
+    match = re.search(r"\d+(?:\.\d+)?", raw)
+    return float(match.group(0)) if match else None
+
+
+def parse_price_usd(value: str) -> int | None:
+    raw = str(value or "")
+    match = re.search(r"\d[\d\s\u00a0.,]*", raw)
+    if not match:
+        return None
+    digits = re.sub(r"[^\d]", "", match.group(0))
+    return int(digits) if digits else None
 
 
 def extract_file_url(property_value: dict[str, Any] | None) -> str:
