@@ -31,6 +31,7 @@ const priceMinLabel = document.getElementById("price-min-label");
 const priceMaxLabel = document.getElementById("price-max-label");
 const priceRangeFill = document.getElementById("price-range-fill");
 const verifiedToggleNode = document.getElementById("verified-toggle");
+const mapCountsNode = document.getElementById("map-counts");
 const lightboxNode = document.getElementById("photo-lightbox");
 const lightboxImageNode = document.getElementById("lightbox-image");
 const lightboxCloseNode = document.getElementById("lightbox-close");
@@ -63,6 +64,18 @@ const state = {
 function normalizeUrl(url) {
   const raw = String(url ?? "").trim();
   if (!raw) return "";
+  if (
+    raw.startsWith("./") ||
+    raw.startsWith("../") ||
+    raw.startsWith("/") ||
+    raw.startsWith("#") ||
+    raw.startsWith("data:") ||
+    raw.startsWith("blob:") ||
+    raw.startsWith("tel:") ||
+    raw.startsWith("mailto:")
+  ) {
+    return raw;
+  }
   return raw.includes("://") ? raw : `https://${raw.replace(/^\/+/, "")}`;
 }
 
@@ -81,6 +94,23 @@ function formatArea(value) {
 
 function formatPrice(value) {
   return `${Math.round(value).toLocaleString("uk-UA")}$`;
+}
+
+function formatParcelCount(count) {
+  const value = Math.abs(Number(count) || 0);
+  const lastTwo = value % 100;
+  const last = value % 10;
+  if (lastTwo >= 11 && lastTwo <= 14) return `${count} ділянок`;
+  if (last === 1) return `${count} ділянка`;
+  if (last >= 2 && last <= 4) return `${count} ділянки`;
+  return `${count} ділянок`;
+}
+
+function updateMapCounts() {
+  if (!mapCountsNode) return;
+  const total = getLandmatchItems().length;
+  const filtered = getFilteredItems().length;
+  mapCountsNode.textContent = `Доступно ${formatParcelCount(total)}. За вашим фільтром ${formatParcelCount(filtered)}`;
 }
 
 function markerIcon(item, isSelected = false) {
@@ -154,12 +184,6 @@ function panelMarkup(item) {
         <strong>${escapeHtml(item.price || "—")}</strong>
       </div>
       <div class="panel-actions">
-        ${item.has_verified_photos ? actionButton({
-          href: PHONE_URL,
-          icon: "phone.png",
-          label: "Подзвонити",
-          modifier: "phone",
-        }) : ""}
         ${actionButton({
           href: item.google_maps_url,
           icon: "IMG_5575.PNG",
@@ -172,6 +196,12 @@ function panelMarkup(item) {
           label: "Telegram",
           modifier: "telegram",
         })}
+        ${item.has_verified_photos ? actionButton({
+          href: PHONE_URL,
+          icon: "phone.png",
+          label: "+380 68 715 59 96",
+          modifier: "phone",
+        }) : ""}
       </div>
     </article>
   `;
@@ -360,6 +390,7 @@ function updateRangeUi(kind) {
 function handleFilterInput(kind, changed) {
   clampRange(kind, changed);
   updateRangeUi(kind);
+  updateMapCounts();
   renderMarkers({ fit: true });
   refreshSelectedPanel();
 }
@@ -425,8 +456,9 @@ function registerEvents() {
     verifiedToggleNode.classList.toggle("is-active", state.verifiedOnly);
     verifiedToggleNode.setAttribute("aria-pressed", state.verifiedOnly ? "true" : "false");
     verifiedToggleNode.innerHTML = state.verifiedOnly
-      ? '<span>Тільки перевірені<br />ділянки з фото</span><span class="verified-toggle-mark">✅</span>'
-      : '<span>Тільки перевірені<br />ділянки з фото</span><span class="verified-toggle-mark">▢</span>';
+      ? '<span class="verified-toggle-text"><span>Тільки перевірені</span><span>ділянки з фото</span></span><span class="verified-toggle-mark">✅</span>'
+      : '<span class="verified-toggle-text"><span>Тільки перевірені</span><span>ділянки з фото</span></span><span class="verified-toggle-mark">▢</span>';
+    updateMapCounts();
     renderMarkers({ fit: true });
     refreshSelectedPanel();
   });
@@ -539,6 +571,7 @@ async function bootstrap() {
 
   try {
     dataset = await loadData();
+    updateMapCounts();
     renderMarkers();
     openInitialDeepLink();
   } catch (error) {

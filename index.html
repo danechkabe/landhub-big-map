@@ -29,10 +29,16 @@
     <div class="page-shell">
       <header class="hero">
         <div class="hero-bar">
-          <h1>LandHub map</h1>
+          <div class="hero-title">
+            <h1>LandHub map</h1>
+            <p id="map-counts" class="map-counts">Завантажуємо ділянки...</p>
+          </div>
           <section class="filters" aria-label="Фільтри карти">
             <button id="verified-toggle" class="verified-toggle" type="button" aria-pressed="false">
-              <span>Тільки перевірені<br />ділянки з фото</span>
+              <span class="verified-toggle-text">
+                <span>Тільки перевірені</span>
+                <span>ділянки з фото</span>
+              </span>
               <span class="verified-toggle-mark">▢</span>
             </button>
             <div class="range-filter" data-filter="area">
