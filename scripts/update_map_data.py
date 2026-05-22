@@ -12,7 +12,7 @@ import re
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, unquote, urlparse
+from urllib.parse import parse_qs, unquote, urlparse, urlunparse
 
 import requests
 
@@ -298,7 +298,8 @@ class PhotoProcessor:
         if Image is None or ImageOps is None:
             return normalized
 
-        key = sha256(normalized.encode("utf-8")).hexdigest()[:24]
+        stable_source = self._stable_source_url(normalized)
+        key = sha256(f"{page_id}:{index}:{stable_source}".encode("utf-8")).hexdigest()[:24]
         cached = self.manifest.get(key)
         if isinstance(cached, dict):
             local_path = str(cached.get("local_path") or "")
@@ -320,7 +321,8 @@ class PhotoProcessor:
             return normalized
 
         self.manifest[key] = {
-            "source_url_hash": key,
+            "cache_key": key,
+            "source_url_stable": stable_source,
             "local_path": local_path,
             "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
@@ -367,6 +369,12 @@ class PhotoProcessor:
                     )
             output_path.parent.mkdir(parents=True, exist_ok=True)
             base.convert("RGB").save(output_path, "JPEG", quality=PHOTO_JPEG_QUALITY, optimize=True)
+
+    def _stable_source_url(self, url: str) -> str:
+        parsed = urlparse(url)
+        if not parsed.scheme or not parsed.netloc:
+            return url
+        return urlunparse(parsed._replace(query="", fragment=""))
 
 
 def extract_notion_database_id(value: str) -> str:
