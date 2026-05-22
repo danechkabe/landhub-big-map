@@ -1,4 +1,5 @@
 const TELEGRAM_URL = "https://t.me/landhub_daniil";
+const PHONE_URL = "tel:+380687155996";
 
 const FILTERS = {
   area: { min: 1, max: 100, step: 1 },
@@ -47,6 +48,7 @@ let selectedId = "";
 let lightboxScale = 1;
 let lightboxOffset = { x: 0, y: 0 };
 let lightboxDrag = null;
+let lightboxSwipe = null;
 let lightboxPhotos = [];
 let lightboxIndex = 0;
 
@@ -152,6 +154,12 @@ function panelMarkup(item) {
         <strong>${escapeHtml(item.price || "—")}</strong>
       </div>
       <div class="panel-actions">
+        ${item.has_verified_photos ? actionButton({
+          href: PHONE_URL,
+          icon: "phone.png",
+          label: "Подзвонити",
+          modifier: "phone",
+        }) : ""}
         ${actionButton({
           href: item.google_maps_url,
           icon: "IMG_5575.PNG",
@@ -416,9 +424,9 @@ function registerEvents() {
     state.verifiedOnly = !state.verifiedOnly;
     verifiedToggleNode.classList.toggle("is-active", state.verifiedOnly);
     verifiedToggleNode.setAttribute("aria-pressed", state.verifiedOnly ? "true" : "false");
-    verifiedToggleNode.textContent = state.verifiedOnly
-      ? "Тільки перевірені ділянки ✅"
-      : "Тільки перевірені ділянки ▢";
+    verifiedToggleNode.innerHTML = state.verifiedOnly
+      ? '<span>Тільки перевірені<br />ділянки з фото</span><span class="verified-toggle-mark">✅</span>'
+      : '<span>Тільки перевірені<br />ділянки з фото</span><span class="verified-toggle-mark">▢</span>';
     renderMarkers({ fit: true });
     refreshSelectedPanel();
   });
@@ -448,11 +456,18 @@ function registerEvents() {
     zoomLightbox(event.deltaY < 0 ? 0.15 : -0.15);
   }, { passive: false });
   lightboxStageNode.addEventListener("pointerdown", (event) => {
-    if (lightboxScale <= 1) return;
-    lightboxDrag = {
+    const point = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
+    };
+    if (lightboxScale <= 1) {
+      lightboxSwipe = point;
+      lightboxStageNode.setPointerCapture(event.pointerId);
+      return;
+    }
+    lightboxDrag = {
+      ...point,
       offsetX: lightboxOffset.x,
       offsetY: lightboxOffset.y,
     };
@@ -466,11 +481,20 @@ function registerEvents() {
     };
     applyLightboxTransform();
   });
-  lightboxStageNode.addEventListener("pointerup", () => {
+  lightboxStageNode.addEventListener("pointerup", (event) => {
+    if (lightboxSwipe && event.pointerId === lightboxSwipe.pointerId) {
+      const deltaX = event.clientX - lightboxSwipe.startX;
+      const deltaY = event.clientY - lightboxSwipe.startY;
+      if (Math.abs(deltaX) > 44 && Math.abs(deltaX) > Math.abs(deltaY) * 1.2) {
+        showLightboxPhoto(lightboxIndex + (deltaX < 0 ? 1 : -1));
+      }
+    }
     lightboxDrag = null;
+    lightboxSwipe = null;
   });
   lightboxStageNode.addEventListener("pointercancel", () => {
     lightboxDrag = null;
+    lightboxSwipe = null;
   });
 
   window.addEventListener("popstate", () => {
@@ -483,11 +507,17 @@ function registerEvents() {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key !== "Escape") return;
     if (lightboxNode.getAttribute("aria-hidden") === "false") {
-      closeLightbox();
+      if (event.key === "Escape") {
+        closeLightbox();
+      } else if (event.key === "ArrowLeft") {
+        showLightboxPhoto(lightboxIndex - 1);
+      } else if (event.key === "ArrowRight") {
+        showLightboxPhoto(lightboxIndex + 1);
+      }
       return;
     }
+    if (event.key !== "Escape") return;
     closePanel();
   });
 }

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from hashlib import sha256
 import json
 import re
 import time
@@ -14,6 +15,12 @@ from typing import Any
 from urllib.parse import parse_qs, unquote, urlparse
 
 import requests
+
+try:
+    from PIL import Image, ImageOps
+except ImportError:  # pragma: no cover - GitHub Actions installs Pillow.
+    Image = None
+    ImageOps = None
 
 NOTION_API_BASE = "https://api.notion.com/v1"
 NOTION_VERSION = "2026-03-11"
@@ -26,6 +33,8 @@ LANDMATCH_URL = (
     "?v=30649a17ea9780058dd9000c82bc6059&source=copy_link"
 )
 LANDMATCH_META = {"symbol": "💛", "color": "#e0b21b"}
+PHOTO_MAX_SIDE = 1600
+PHOTO_JPEG_QUALITY = 82
 
 
 @dataclass(frozen=True)
@@ -44,6 +53,21 @@ def parse_args() -> argparse.Namespace:
         default=str(Path(__file__).resolve().parents[1] / "data" / "parcels.json"),
         help="Output JSON path",
     )
+    parser.add_argument(
+        "--photo-dir",
+        default=str(Path(__file__).resolve().parents[1] / "assets" / "generated-photos"),
+        help="Directory for optimized watermarked site photos.",
+    )
+    parser.add_argument(
+        "--photo-manifest",
+        default=str(Path(__file__).resolve().parents[1] / "data" / "photo_manifest.json"),
+        help="Manifest mapping Notion file URLs to generated local photos.",
+    )
+    parser.add_argument(
+        "--watermark",
+        default=str(Path(__file__).resolve().parents[1] / "assets" / "watermark_overlay.png"),
+        help="Watermark image path.",
+    )
     return parser.parse_args()
 
 
@@ -55,6 +79,12 @@ def main() -> int:
         "Notion-Version": NOTION_VERSION,
         "Content-Type": "application/json",
     }
+    photo_processor = PhotoProcessor(
+        photo_dir=Path(args.photo_dir),
+        manifest_path=Path(args.photo_manifest),
+        watermark_path=Path(args.watermark),
+        session=session,
+    )
 
     source = NotionSource(
         key="landmatch",
@@ -66,7 +96,7 @@ def main() -> int:
     items = [
         item
         for page in pages
-        if (item := normalize_page(source.key, page, session=session)) is not None
+        if (item := normalize_page(source.key, page, session=session, photo_processor=photo_processor)) is not None
     ]
     items.sort(key=lambda item: (str(item.get("name") or "").lower(), str(item.get("id") or "")))
 
@@ -81,6 +111,7 @@ def main() -> int:
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    photo_processor.save()
     print(f"Wrote {len(items)} LandMatch markers to {output_path}")
     return 0
 
@@ -196,6 +227,7 @@ def normalize_page(
     page: dict[str, Any],
     *,
     session: requests.Session,
+    photo_processor: "PhotoProcessor",
 ) -> dict[str, Any] | None:
     properties = page.get("properties") or {}
     map_url = extract_url(properties.get("Мапа"))
@@ -211,9 +243,14 @@ def normalize_page(
     marker = LANDMATCH_META
     main_photo_url = extract_file_url(properties.get("Photo"))
     extra_photo_urls = extract_file_urls(properties.get("Фотографії"))
-    photo_urls = ([main_photo_url] if main_photo_url else []) + [
+    source_photo_urls = ([main_photo_url] if main_photo_url else []) + [
         url for url in extra_photo_urls if url and url != main_photo_url
     ]
+    photo_urls = [
+        photo_processor.process(url, page_id=str(page.get("id") or ""), index=index)
+        for index, url in enumerate(source_photo_urls)
+    ]
+    photo_urls = [url for url in photo_urls if url]
     return {
         "id": str(page.get("id") or ""),
         "source": source_key,
@@ -237,6 +274,99 @@ def normalize_page(
         "marker_symbol": marker["symbol"],
         "marker_color": marker["color"],
     }
+
+
+class PhotoProcessor:
+    def __init__(
+        self,
+        *,
+        photo_dir: Path,
+        manifest_path: Path,
+        watermark_path: Path,
+        session: requests.Session,
+    ) -> None:
+        self.photo_dir = photo_dir
+        self.manifest_path = manifest_path
+        self.watermark_path = watermark_path
+        self.session = session
+        self.manifest = self._load_manifest()
+
+    def process(self, url: str, *, page_id: str, index: int) -> str:
+        normalized = str(url or "").strip()
+        if not normalized:
+            return ""
+        if Image is None or ImageOps is None:
+            return normalized
+
+        key = sha256(normalized.encode("utf-8")).hexdigest()[:24]
+        cached = self.manifest.get(key)
+        if isinstance(cached, dict):
+            local_path = str(cached.get("local_path") or "")
+            if local_path and (self.photo_dir.parent.parent / local_path).is_file():
+                return f"./{local_path}"
+
+        safe_page = re.sub(r"[^0-9a-zA-Z-]+", "", page_id.replace("-", ""))[:16] or "parcel"
+        filename = f"{safe_page}-{index}-{key}.jpg"
+        output_path = self.photo_dir / filename
+        local_path = str(output_path.relative_to(self.photo_dir.parent.parent))
+
+        try:
+            self.photo_dir.mkdir(parents=True, exist_ok=True)
+            response = self.session.get(normalized, timeout=45)
+            response.raise_for_status()
+            self._write_optimized(response.content, output_path)
+        except Exception as exc:  # noqa: BLE001
+            print(f"Could not prepare photo for {page_id}: {exc}", flush=True)
+            return normalized
+
+        self.manifest[key] = {
+            "source_url_hash": key,
+            "local_path": local_path,
+            "created_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        }
+        return f"./{local_path}"
+
+    def save(self) -> None:
+        self.manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        self.manifest_path.write_text(
+            json.dumps(self.manifest, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+    def _load_manifest(self) -> dict[str, Any]:
+        if not self.manifest_path.is_file():
+            return {}
+        try:
+            value = json.loads(self.manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return {}
+        return value if isinstance(value, dict) else {}
+
+    def _write_optimized(self, content: bytes, output_path: Path) -> None:
+        from io import BytesIO
+
+        with Image.open(BytesIO(content)) as image:
+            base = ImageOps.exif_transpose(image).convert("RGBA")
+            base.thumbnail((PHOTO_MAX_SIDE, PHOTO_MAX_SIDE), Image.Resampling.LANCZOS)
+            if self.watermark_path.is_file():
+                with Image.open(self.watermark_path) as watermark_image:
+                    watermark = watermark_image.convert("RGBA")
+                    target_width = max(1, int(base.width * 0.16))
+                    scale = target_width / max(1, watermark.width)
+                    watermark = watermark.resize(
+                        (target_width, max(1, int(watermark.height * scale))),
+                        Image.Resampling.LANCZOS,
+                    )
+                    margin = max(8, int(base.width * 0.035))
+                    base.alpha_composite(
+                        watermark,
+                        dest=(
+                            max(0, base.width - watermark.width - margin),
+                            max(0, base.height - watermark.height - margin),
+                        ),
+                    )
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            base.convert("RGB").save(output_path, "JPEG", quality=PHOTO_JPEG_QUALITY, optimize=True)
 
 
 def extract_notion_database_id(value: str) -> str:

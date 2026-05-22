@@ -78,6 +78,10 @@ body {
 
 .verified-toggle {
   align-self: end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   min-height: 42px;
   padding: 0 14px;
   border: 1px solid rgba(24, 33, 20, 0.72);
@@ -88,7 +92,16 @@ body {
   font: inherit;
   font-size: 13px;
   font-weight: 900;
+  line-height: 1.1;
   white-space: nowrap;
+}
+
+.verified-toggle-mark {
+  display: inline-flex;
+  align-items: center;
+  align-self: stretch;
+  font-size: 18px;
+  line-height: 1;
 }
 
 .verified-toggle.is-active {
@@ -263,7 +276,7 @@ body {
 
 .parcel-details {
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
   height: 100%;
   min-height: 0;
 }
@@ -323,6 +336,7 @@ body {
   min-height: 0;
   margin: 10px 0;
   gap: 7px;
+  align-content: stretch;
 }
 
 .photo-grid--1 {
@@ -330,9 +344,16 @@ body {
 }
 
 .photo-grid--2,
-.photo-grid--3,
 .photo-grid--4 {
   grid-template-columns: 1fr 1fr;
+}
+
+.photo-grid--3 {
+  grid-template-columns: 1.08fr 0.92fr;
+}
+
+.photo-grid--3 .parcel-photo:first-child {
+  grid-row: span 2;
 }
 
 .parcel-photo {
@@ -340,7 +361,8 @@ body {
   position: relative;
   display: block;
   width: 100%;
-  aspect-ratio: 1 / 1;
+  height: 100%;
+  aspect-ratio: auto;
   min-height: 0;
   padding: 0;
   overflow: hidden;
@@ -355,33 +377,11 @@ body {
   display: block;
   width: 100%;
   height: 100%;
-  min-height: 130px;
+  min-height: 0;
   max-height: 100%;
   object-fit: cover;
   transform: scale(2);
   border-radius: 18px;
-}
-
-.parcel-photo::after {
-  position: absolute;
-  right: 4%;
-  bottom: 4%;
-  width: 16%;
-  aspect-ratio: 1284 / 682;
-  background: url("./assets/watermark_overlay.png") center / contain no-repeat;
-  content: "";
-  pointer-events: none;
-}
-
-.lightbox-stage::after {
-  position: absolute;
-  right: 4%;
-  bottom: 4%;
-  width: min(14vw, 180px);
-  aspect-ratio: 1284 / 682;
-  background: url("./assets/watermark_overlay.png") center / contain no-repeat;
-  content: "";
-  pointer-events: none;
 }
 
 .price-card {
@@ -395,7 +395,7 @@ body {
 
 .panel-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(68px, 1fr));
   gap: 8px;
   margin-top: 10px;
 }
@@ -657,7 +657,7 @@ body {
   }
 
   .map-layout.panel-open .parcel-panel {
-    height: min(42vh, 440px);
+    height: min(58vh, 620px);
     width: 100%;
     max-width: 100%;
     opacity: 1;
@@ -691,7 +691,7 @@ body {
   }
 
   .parcel-photo img {
-    min-height: 90px;
+    min-height: 0;
     transform: scale(2);
   }
 
@@ -717,7 +717,7 @@ body {
   }
 
   .map-layout.panel-open .parcel-panel {
-    height: 46vh;
+    height: 64vh;
   }
 
   .details-list {
