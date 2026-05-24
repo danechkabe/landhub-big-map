@@ -125,10 +125,12 @@ def main() -> int:
         ),
     ]
     items = dedupe_by_cadastral(
-        item
-        for source in sources
-        for page in fetch_database_pages(source, headers=headers, session=session)
-        if (item := normalize_page(source.key, page, session=session, photo_processor=photo_processor)) is not None
+        [
+            item
+            for source in sources
+            for page in fetch_database_pages(source, headers=headers, session=session)
+            if (item := normalize_page(source.key, page, session=session, photo_processor=photo_processor)) is not None
+        ]
     )
     items.sort(key=lambda item: (str(item.get("name") or "").lower(), str(item.get("id") or "")))
 
@@ -137,7 +139,12 @@ def main() -> int:
         "source": "LandMatch Parcels + Кандидати/OLX + Ділянки на реалізацію",
         "filter": {
             "dedupe": "cadastral",
-            "priority": ["Ділянки на реалізацію", "Кандидати/OLX", "LandMatch Parcels"],
+            "priority": [
+                "Rows with Фотографії",
+                "Ділянки на реалізацію",
+                "Кандидати/OLX",
+                "LandMatch Parcels",
+            ],
         },
         "counts": {"landmatch": len(items)},
         "categories": {"landmatch": items},
@@ -151,17 +158,37 @@ def main() -> int:
     return 0
 
 
-def dedupe_by_cadastral(items: Any) -> list[dict[str, Any]]:
+def dedupe_by_cadastral(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
     result: list[dict[str, Any]] = []
-    seen_cadastral: set[str] = set()
+    best_by_cadastral: dict[str, dict[str, Any]] = {}
+    source_rank = {"realization": 0, "candidates": 1, "landmatch": 2}
     for item in items:
         cadastral = str(item.get("cadastral") or "").strip()
-        if cadastral:
-            if cadastral in seen_cadastral:
-                continue
-            seen_cadastral.add(cadastral)
-        result.append(item)
+        if not cadastral:
+            result.append(item)
+            continue
+        current = best_by_cadastral.get(cadastral)
+        if current is None or dedupe_rank(item, source_rank) < dedupe_rank(current, source_rank):
+            best_by_cadastral[cadastral] = item
+
+    seen: set[str] = set()
+    for item in items:
+        cadastral = str(item.get("cadastral") or "").strip()
+        if not cadastral:
+            continue
+        if cadastral in seen:
+            continue
+        seen.add(cadastral)
+        result.append(best_by_cadastral[cadastral])
     return result
+
+
+def dedupe_rank(item: dict[str, Any], source_rank: dict[str, int]) -> tuple[int, int]:
+    has_extra_photos = bool(item.get("has_verified_photos"))
+    return (
+        0 if has_extra_photos else 1,
+        source_rank.get(str(item.get("source") or ""), 99),
+    )
 
 
 def fetch_database_pages(
