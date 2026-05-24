@@ -110,7 +110,7 @@ function updateMapCounts() {
   if (!mapCountsNode) return;
   const total = getLandmatchItems().length;
   const filtered = getFilteredItems().length;
-  mapCountsNode.textContent = `Доступно ${formatParcelCount(total)}. За вашим фільтром ${formatParcelCount(filtered)}`;
+  mapCountsNode.textContent = `Доступно ${formatParcelCount(total)}. За фільтром ${formatParcelCount(filtered)}`;
 }
 
 function markerIcon(item, isSelected = false) {

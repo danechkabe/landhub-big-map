@@ -32,6 +32,20 @@ LANDMATCH_URL = (
     "https://www.notion.so/30649a17ea97804c8acac49da41511e5"
     "?v=30649a17ea9780058dd9000c82bc6059&source=copy_link"
 )
+OLX_URL = (
+    "https://www.notion.so/2ef49a17ea97803e8b20edf5611b033f"
+    "?v=2ef49a17ea9780448e2f000ca8f156c1&source=copy_link"
+)
+LANDHUB_URL = (
+    "https://www.notion.so/2ef49a17ea97807b9204d95797898034"
+    "?v=2ef49a17ea978095af81000cdf80f39a&source=copy_link"
+)
+OLX_STATUS_NAMES = (
+    "Дає на реалізацію",
+    "На сайт ок. Але з олх не прибере",
+    "Передзвонити",
+    "Не опрацьована",
+)
 LANDMATCH_META = {"symbol": "💛", "color": "#e0b21b"}
 PHOTO_MAX_SIDE = 1600
 PHOTO_JPEG_QUALITY = 82
@@ -86,24 +100,45 @@ def main() -> int:
         session=session,
     )
 
-    source = NotionSource(
-        key="landmatch",
-        label="LandMatch",
-        database_url=LANDMATCH_URL,
-        filter_payload={"property": "Status", "select": {"equals": "active"}},
-    )
-    pages = fetch_database_pages(source, headers=headers, session=session)
-    items = [
-        item
-        for page in pages
-        if (item := normalize_page(source.key, page, session=session, photo_processor=photo_processor)) is not None
+    sources = [
+        NotionSource(
+            key="realization",
+            label="Ділянки на реалізацію",
+            database_url=LANDHUB_URL,
+        ),
+        NotionSource(
+            key="candidates",
+            label="Кандидати/OLX",
+            database_url=OLX_URL,
+            filter_payload={
+                "or": [
+                    {"property": "Status Даня", "status": {"equals": status}}
+                    for status in OLX_STATUS_NAMES
+                ]
+            },
+        ),
+        NotionSource(
+            key="landmatch",
+            label="LandMatch Parcels",
+            database_url=LANDMATCH_URL,
+            filter_payload={"property": "Status", "select": {"equals": "active"}},
+        ),
     ]
+    items = dedupe_by_cadastral(
+        item
+        for source in sources
+        for page in fetch_database_pages(source, headers=headers, session=session)
+        if (item := normalize_page(source.key, page, session=session, photo_processor=photo_processor)) is not None
+    )
     items.sort(key=lambda item: (str(item.get("name") or "").lower(), str(item.get("id") or "")))
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source": "LandMatch Parcels",
-        "filter": {"Status": "active"},
+        "source": "LandMatch Parcels + Кандидати/OLX + Ділянки на реалізацію",
+        "filter": {
+            "dedupe": "cadastral",
+            "priority": ["Ділянки на реалізацію", "Кандидати/OLX", "LandMatch Parcels"],
+        },
         "counts": {"landmatch": len(items)},
         "categories": {"landmatch": items},
     }
@@ -114,6 +149,19 @@ def main() -> int:
     photo_processor.save()
     print(f"Wrote {len(items)} LandMatch markers to {output_path}")
     return 0
+
+
+def dedupe_by_cadastral(items: Any) -> list[dict[str, Any]]:
+    result: list[dict[str, Any]] = []
+    seen_cadastral: set[str] = set()
+    for item in items:
+        cadastral = str(item.get("cadastral") or "").strip()
+        if cadastral:
+            if cadastral in seen_cadastral:
+                continue
+            seen_cadastral.add(cadastral)
+        result.append(item)
+    return result
 
 
 def fetch_database_pages(
@@ -251,21 +299,30 @@ def normalize_page(
         for index, url in enumerate(source_photo_urls)
     ]
     photo_urls = [url for url in photo_urls if url]
+    name = extract_title(properties.get("Name"))
+    if not name:
+        name = extract_title(properties.get("Назва села/ділянки"))
+    price_text = extract_rich_text(properties.get("Наша ціна")) or extract_rich_text(properties.get("Ціна"))
+    area_text = extract_rich_text(properties.get("Площа"))
+    area_sotky = extract_number_value(properties.get("Area Sotky"))
+    if area_sotky is None:
+        area_sotky = parse_area_sotky(area_text)
+
     return {
         "id": str(page.get("id") or ""),
         "source": source_key,
-        "name": (extract_title(properties.get("Name")) or "Без назви").strip(),
+        "name": (name or "Без назви").strip(),
         "cadastral": extract_rich_text(properties.get("Кадастровий номер")).strip(),
-        "area": (extract_rich_text(properties.get("Площа")) or "—").strip(),
-        "area_sotky": extract_number_value(properties.get("Area Sotky")),
+        "area": (area_text or "—").strip(),
+        "area_sotky": area_sotky,
         "purpose": (extract_rich_text(properties.get("Цільове призначення")) or "—").strip(),
         "distance_to_kyiv": (extract_rich_text(properties.get("до Києва")) or "—").strip(),
         "photo_url": main_photo_url,
         "extra_photo_urls": extra_photo_urls,
         "photo_urls": photo_urls,
         "has_verified_photos": bool(extra_photo_urls),
-        "price": (extract_rich_text(properties.get("Наша ціна")) or "—").strip(),
-        "price_usd": parse_price_usd(extract_rich_text(properties.get("Наша ціна"))),
+        "price": (price_text or "—").strip(),
+        "price_usd": parse_price_usd(price_text),
         "google_maps_url": resolved_map_url,
         "notion_url": str(page.get("url") or "").strip(),
         "olx_url": extract_url(properties.get("Посилання на OLX")),
@@ -274,6 +331,16 @@ def normalize_page(
         "marker_symbol": marker["symbol"],
         "marker_color": marker["color"],
     }
+
+
+def parse_area_sotky(value: str) -> float | None:
+    number = parse_float(value)
+    if number is None:
+        return None
+    text = str(value or "").lower()
+    if "га" in text or "гект" in text:
+        return number * 100
+    return number
 
 
 class PhotoProcessor:
