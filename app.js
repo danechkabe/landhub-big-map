@@ -106,6 +106,29 @@ function formatParcelCount(count) {
   return `${count} ділянок`;
 }
 
+function trackEvent(name, params = {}) {
+  if (typeof window.gtag !== "function") return;
+  window.gtag("event", name, params);
+}
+
+function parcelAnalyticsParams(item, extra = {}) {
+  return {
+    parcel_id: String(item.id || ""),
+    cadastral: String(item.cadastral || ""),
+    parcel_name: String(item.name || ""),
+    parcel_source: String(item.source || ""),
+    area_sotky: getItemArea(item),
+    price_usd: getItemPrice(item),
+    has_verified_photos: Boolean(item.has_verified_photos),
+    photo_count: getPhotoUrls(item).length,
+    ...extra,
+  };
+}
+
+function trackParcelOpen(item, openSource) {
+  trackEvent("parcel_open", parcelAnalyticsParams(item, { open_source: openSource }));
+}
+
 function updateMapCounts() {
   if (!mapCountsNode) return;
   const total = getLandmatchItems().length;
@@ -291,12 +314,13 @@ function updateUrlForItem(item, replace = false) {
   window.history[method]({}, "", url);
 }
 
-function openPanel(item, { updateUrl = true, replaceUrl = false } = {}) {
+function openPanel(item, { updateUrl = true, replaceUrl = false, openSource = "marker" } = {}) {
   panelContentNode.innerHTML = panelMarkup(item);
   panelNode.setAttribute("aria-hidden", "false");
   layoutNode.classList.add("panel-open");
   setSelectedMarker(item.id);
   if (updateUrl) updateUrlForItem(item, replaceUrl);
+  trackParcelOpen(item, openSource);
   window.setTimeout(() => map.invalidateSize({ animate: true }), 260);
 }
 
@@ -393,6 +417,16 @@ function handleFilterInput(kind, changed) {
   updateMapCounts();
   renderMarkers({ fit: true });
   refreshSelectedPanel();
+  trackEvent("filter_change", {
+    filter_kind: kind,
+    changed_handle: changed,
+    area_min: state.areaMin,
+    area_max: state.areaMax,
+    price_min: state.priceMin,
+    price_max: state.priceMax,
+    verified_only: state.verifiedOnly,
+    filtered_count: getFilteredItems().length,
+  });
 }
 
 async function loadData() {
@@ -461,13 +495,43 @@ function registerEvents() {
     updateMapCounts();
     renderMarkers({ fit: true });
     refreshSelectedPanel();
+    trackEvent("filter_change", {
+      filter_kind: "verified_only",
+      changed_handle: "toggle",
+      area_min: state.areaMin,
+      area_max: state.areaMax,
+      price_min: state.priceMin,
+      price_max: state.priceMax,
+      verified_only: state.verifiedOnly,
+      filtered_count: getFilteredItems().length,
+    });
   });
 
   panelContentNode.addEventListener("click", (event) => {
+    const actionLink = event.target.closest(".action-link");
+    if (actionLink) {
+      const item = findSelectedItem();
+      if (item) {
+        trackEvent("contact_click", parcelAnalyticsParams(item, {
+          contact_type: actionLink.classList.contains("action-link--maps")
+            ? "google_maps"
+            : actionLink.classList.contains("action-link--telegram")
+              ? "telegram"
+              : actionLink.classList.contains("action-link--phone")
+                ? "phone"
+                : "unknown",
+        }));
+      }
+      return;
+    }
+
     const button = event.target.closest(".parcel-photo");
     if (!button) return;
     const item = findSelectedItem();
     if (!item) return;
+    trackEvent("photo_open", parcelAnalyticsParams(item, {
+      photo_index: Number(button.dataset.photoIndex || 0),
+    }));
     openLightbox(getPhotoUrls(item), Number(button.dataset.photoIndex || 0), button.dataset.photoTitle);
   });
 
@@ -532,7 +596,7 @@ function registerEvents() {
   window.addEventListener("popstate", () => {
     const item = findItemByCadastral(new URL(window.location.href).searchParams.get("cad"));
     if (item) {
-      openPanel(item, { updateUrl: false });
+      openPanel(item, { updateUrl: false, openSource: "browser_history" });
     } else {
       closePanel({ updateUrl: false });
     }
@@ -558,7 +622,7 @@ function openInitialDeepLink() {
   const cadastral = new URL(window.location.href).searchParams.get("cad");
   const item = findItemByCadastral(cadastral);
   if (!item) return;
-  openPanel(item, { updateUrl: true, replaceUrl: true });
+  openPanel(item, { updateUrl: true, replaceUrl: true, openSource: "deeplink" });
   if (Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))) {
     map.setView([Number(item.latitude), Number(item.longitude)], 14);
   }
