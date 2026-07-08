@@ -6,4 +6,5 @@ The site is published at:
 
 https://map.landhub.com.ua/
 
-Data is refreshed by GitHub Actions every 5 minutes from Notion into `data/parcels.json`.
+Data is refreshed from Notion into `data/parcels.json` by a server-side systemd timer every 5 minutes.
+GitHub Actions keeps a manual `workflow_dispatch` refresh as a fallback.
