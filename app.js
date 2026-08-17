@@ -156,6 +156,40 @@ function detailRow(label, value) {
   `;
 }
 
+function sidesRow(value) {
+  const rows = parseSides(value);
+  if (!rows.length) return detailRow("Сторони", value);
+  return `
+    <div class="detail-row detail-row--sides">
+      <span>Сторони</span>
+      <div class="sides-table">
+        ${rows.map((row) => `
+          <div class="sides-table__row">
+            <span>${escapeHtml(row.label)}</span>
+            <strong>${escapeHtml(row.distance)}</strong>
+          </div>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function parseSides(value) {
+  return String(value || "")
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((part) => {
+      const match = part.match(/^(.+?)(\d+(?:[.,]\d+)?)\s*м$/i);
+      if (!match) return null;
+      return {
+        label: match[1].trim().replace(/\s*→\s*/g, " → "),
+        distance: `${match[2].replace(",", ".")} м`,
+      };
+    })
+    .filter(Boolean);
+}
+
 function actionButton({ href, icon, label, modifier }) {
   const normalizedHref = normalizeUrl(href);
   if (!normalizedHref) return "";
@@ -193,7 +227,7 @@ function panelMarkup(item) {
     ? `
       <div class="parcel-shape-details">
         ${item.perimeter && item.perimeter !== "—" ? detailRow("Периметр", item.perimeter) : ""}
-        ${item.sides && item.sides !== "—" ? detailRow("Сторони", item.sides) : ""}
+        ${item.sides && item.sides !== "—" ? sidesRow(item.sides) : ""}
       </div>
     `
     : "";

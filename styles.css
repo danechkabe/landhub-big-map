@@ -359,6 +359,38 @@ body {
   overflow-wrap: anywhere;
 }
 
+.detail-row--sides {
+  gap: 8px;
+}
+
+.sides-table {
+  display: grid;
+  gap: 8px;
+}
+
+.sides-table__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.sides-table__row span {
+  color: #4d5665;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.sides-table__row strong {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 .photo-stack {
   display: grid;
   min-height: 0;
