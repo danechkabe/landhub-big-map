@@ -406,7 +406,12 @@ class PhotoProcessor:
             return normalized
 
         stable_source = self._stable_source_url(normalized)
-        key = sha256(f"{page_id}:{index}:{int(watermark)}:{stable_source}".encode("utf-8")).hexdigest()[:24]
+        cache_source = (
+            f"{page_id}:{index}:{stable_source}"
+            if watermark
+            else f"{page_id}:{index}:no-watermark:{stable_source}"
+        )
+        key = sha256(cache_source.encode("utf-8")).hexdigest()[:24]
         cached = self.manifest.get(key)
         if isinstance(cached, dict):
             local_path = str(cached.get("local_path") or "")
