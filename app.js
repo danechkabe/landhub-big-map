@@ -176,12 +176,13 @@ function actionButton({ href, icon, label, modifier }) {
 
 function panelMarkup(item) {
   const photoUrls = getPhotoUrls(item);
-  const previewUrls = photoUrls.slice(0, 4);
+  const previewUrls = photoUrls.slice(0, 3);
+  const planUrl = normalizeUrl(item.plan_photo_url);
   const photoMarkup = previewUrls.length
     ? `
-      <div class="photo-grid photo-grid--${Math.min(previewUrls.length, 4)}">
+      <div class="photo-stack">
         ${previewUrls.map((url, index) => `
-          <button class="parcel-photo" type="button" data-photo-index="${index}" data-photo-title="${escapeHtml(item.name)}">
+          <button class="parcel-photo${planUrl && url === planUrl ? " parcel-photo--plan" : ""}" type="button" data-photo-index="${index}" data-photo-title="${escapeHtml(item.name)}">
             <img src="${escapeHtml(url)}" alt="${escapeHtml(item.name)}" loading="lazy" />
           </button>
         `).join("")}

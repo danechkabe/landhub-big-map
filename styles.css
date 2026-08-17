@@ -288,20 +288,23 @@ body {
 
 .panel-content {
   height: 100%;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 18px 16px;
+  scrollbar-width: thin;
 }
 
 .parcel-details {
   display: grid;
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto auto;
-  height: 100%;
+  gap: 10px;
+  align-content: start;
+  min-height: 100%;
   min-height: 0;
 }
 
 .parcel-details h2 {
   max-width: calc(100% - 38px);
-  margin: 0 0 8px;
+  margin: 0;
   font-size: clamp(26px, 2.5vw, 38px);
   line-height: 0.95;
   letter-spacing: -0.04em;
@@ -309,7 +312,7 @@ body {
 
 .filter-warning {
   min-height: 16px;
-  margin: -1px 0 8px;
+  margin: -3px 0 -2px;
   color: #c92727;
   font-size: 12px;
   font-weight: 900;
@@ -356,29 +359,11 @@ body {
   overflow-wrap: anywhere;
 }
 
-.photo-grid {
+.photo-stack {
   display: grid;
   min-height: 0;
-  margin: 10px 0;
-  gap: 7px;
-  align-content: stretch;
-}
-
-.photo-grid--1 {
   grid-template-columns: 1fr;
-}
-
-.photo-grid--2,
-.photo-grid--4 {
-  grid-template-columns: 1fr 1fr;
-}
-
-.photo-grid--3 {
-  grid-template-columns: 1.08fr 0.92fr;
-}
-
-.photo-grid--3 .parcel-photo:first-child {
-  grid-row: span 2;
+  gap: 10px;
 }
 
 .parcel-photo {
@@ -386,8 +371,7 @@ body {
   position: relative;
   display: block;
   width: 100%;
-  height: 100%;
-  aspect-ratio: auto;
+  aspect-ratio: 16 / 10;
   min-height: 0;
   padding: 0;
   overflow: hidden;
@@ -405,8 +389,11 @@ body {
   min-height: 0;
   max-height: 100%;
   object-fit: cover;
-  transform: scale(2);
   border-radius: 18px;
+}
+
+.parcel-photo--plan img {
+  object-fit: contain;
 }
 
 .price-card {
@@ -697,10 +684,6 @@ body {
     padding: 16px 14px;
   }
 
-  .parcel-details {
-    grid-template-rows: auto auto auto 1fr auto auto;
-  }
-
   .parcel-details h2 {
     font-size: 24px;
   }
@@ -721,7 +704,6 @@ body {
 
   .parcel-photo img {
     min-height: 0;
-    transform: scale(2);
   }
 
   .price-card strong {
