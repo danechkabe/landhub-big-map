@@ -428,6 +428,21 @@ body {
   object-fit: contain;
 }
 
+/* Let the transparent parcel plan keep its natural proportions. */
+.parcel-photo--plan {
+  aspect-ratio: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.parcel-photo--plan img {
+  height: auto;
+  max-height: none;
+  border-radius: 0;
+}
+
 .price-card {
   margin-top: 0;
   background: color-mix(in srgb, var(--accent-warm) 20%, white);
