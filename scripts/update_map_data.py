@@ -479,6 +479,10 @@ class PhotoProcessor:
                             max(0, base.height - watermark.height - margin),
                         ),
                     )
+            if not watermark:
+                background = Image.new("RGBA", base.size, "#f4f0e6")
+                background.alpha_composite(base)
+                base = background
             output_path.parent.mkdir(parents=True, exist_ok=True)
             base.convert("RGB").save(output_path, "JPEG", quality=PHOTO_JPEG_QUALITY, optimize=True)
 
