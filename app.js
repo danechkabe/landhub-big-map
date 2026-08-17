@@ -188,6 +188,14 @@ function panelMarkup(item) {
       </div>
     `
     : "";
+  const parcelShapeMarkup = hasParcelShapeDetails(item)
+    ? `
+      <div class="parcel-shape-details">
+        ${item.perimeter && item.perimeter !== "—" ? detailRow("Периметр", item.perimeter) : ""}
+        ${item.sides && item.sides !== "—" ? detailRow("Сторони", item.sides) : ""}
+      </div>
+    `
+    : "";
   const filterWarning = passesFilters(item)
     ? '<div class="filter-warning filter-warning--empty">&nbsp;</div>'
     : '<div class="filter-warning">ця ділянка не підходить під новий фільтр</div>';
@@ -202,6 +210,7 @@ function panelMarkup(item) {
         ${detailRow("До Києва", item.distance_to_kyiv)}
       </div>
       ${photoMarkup}
+      ${parcelShapeMarkup}
       <div class="price-card">
         <span>Ціна</span>
         <strong>${escapeHtml(item.price || "—")}</strong>
@@ -242,11 +251,16 @@ function getFilteredItems() {
 
 function getPhotoUrls(item) {
   if (Array.isArray(item.photo_urls) && item.photo_urls.length) {
-    return item.photo_urls.map(normalizeUrl).filter(Boolean);
+    const urls = item.photo_urls.map(normalizeUrl).filter(Boolean);
+    const plan = normalizeUrl(item.plan_photo_url);
+    if (plan && !urls.includes(plan)) urls.splice(Math.min(1, urls.length), 0, plan);
+    return urls;
   }
   const urls = [];
   const main = normalizeUrl(item.photo_url);
   if (main) urls.push(main);
+  const plan = normalizeUrl(item.plan_photo_url);
+  if (plan) urls.push(plan);
   if (Array.isArray(item.extra_photo_urls)) {
     item.extra_photo_urls.forEach((url) => {
       const normalized = normalizeUrl(url);
@@ -254,6 +268,13 @@ function getPhotoUrls(item) {
     });
   }
   return urls;
+}
+
+function hasParcelShapeDetails(item) {
+  return Boolean(
+    (item.perimeter && item.perimeter !== "—") ||
+    (item.sides && item.sides !== "—")
+  );
 }
 
 function getItemArea(item) {

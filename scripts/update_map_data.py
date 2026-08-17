@@ -12,7 +12,7 @@ import re
 import time
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, unquote, urlparse, urlunparse
+from urllib.parse import parse_qs, unquote, urlencode, urlparse, urlunparse
 
 import requests
 
@@ -49,6 +49,7 @@ OLX_STATUS_NAMES = (
 LANDMATCH_META = {"symbol": "💛", "color": "#e0b21b"}
 PHOTO_MAX_SIDE = 1600
 PHOTO_JPEG_QUALITY = 82
+LANDHUB_MAP_BASE_URL = "https://map.landhub.com.ua/"
 
 
 @dataclass(frozen=True)
@@ -326,6 +327,12 @@ def normalize_page(
         for index, url in enumerate(source_photo_urls)
     ]
     photo_urls = [url for url in photo_urls if url]
+    plan_photo_url = photo_processor.process(
+        extract_file_url(properties.get("План ділянки")),
+        page_id=str(page.get("id") or ""),
+        index=1000,
+        watermark=False,
+    )
     name = extract_title(properties.get("Name"))
     if not name:
         name = extract_title(properties.get("Назва села/ділянки"))
@@ -347,10 +354,16 @@ def normalize_page(
         "photo_url": main_photo_url,
         "extra_photo_urls": extra_photo_urls,
         "photo_urls": photo_urls,
+        "plan_photo_url": plan_photo_url,
+        "perimeter": (extract_rich_text(properties.get("Периметр")) or "—").strip(),
+        "sides": (extract_rich_text(properties.get("Сторони")) or "—").strip(),
         "has_verified_photos": bool(extra_photo_urls),
         "price": (price_text or "—").strip(),
         "price_usd": parse_price_usd(price_text),
         "google_maps_url": resolved_map_url,
+        "landhub_map_url": extract_url(properties.get("map.landhub")) or build_landhub_map_url(
+            extract_rich_text(properties.get("Кадастровий номер"))
+        ),
         "notion_url": str(page.get("url") or "").strip(),
         "olx_url": extract_url(properties.get("Посилання на OLX")),
         "latitude": latitude,
@@ -385,7 +398,7 @@ class PhotoProcessor:
         self.session = session
         self.manifest = self._load_manifest()
 
-    def process(self, url: str, *, page_id: str, index: int) -> str:
+    def process(self, url: str, *, page_id: str, index: int, watermark: bool = True) -> str:
         normalized = str(url or "").strip()
         if not normalized:
             return ""
@@ -393,7 +406,7 @@ class PhotoProcessor:
             return normalized
 
         stable_source = self._stable_source_url(normalized)
-        key = sha256(f"{page_id}:{index}:{stable_source}".encode("utf-8")).hexdigest()[:24]
+        key = sha256(f"{page_id}:{index}:{int(watermark)}:{stable_source}".encode("utf-8")).hexdigest()[:24]
         cached = self.manifest.get(key)
         if isinstance(cached, dict):
             local_path = str(cached.get("local_path") or "")
@@ -409,7 +422,7 @@ class PhotoProcessor:
             self.photo_dir.mkdir(parents=True, exist_ok=True)
             response = self.session.get(normalized, timeout=45)
             response.raise_for_status()
-            self._write_optimized(response.content, output_path)
+            self._write_optimized(response.content, output_path, watermark=watermark)
         except Exception as exc:  # noqa: BLE001
             print(f"Could not prepare photo for {page_id}: {exc}", flush=True)
             return normalized
@@ -438,13 +451,13 @@ class PhotoProcessor:
             return {}
         return value if isinstance(value, dict) else {}
 
-    def _write_optimized(self, content: bytes, output_path: Path) -> None:
+    def _write_optimized(self, content: bytes, output_path: Path, *, watermark: bool = True) -> None:
         from io import BytesIO
 
         with Image.open(BytesIO(content)) as image:
             base = ImageOps.exif_transpose(image).convert("RGBA")
             base.thumbnail((PHOTO_MAX_SIDE, PHOTO_MAX_SIDE), Image.Resampling.LANCZOS)
-            if self.watermark_path.is_file():
+            if watermark and self.watermark_path.is_file():
                 with Image.open(self.watermark_path) as watermark_image:
                     watermark = watermark_image.convert("RGBA")
                     target_width = max(1, int(base.width * 0.16))
@@ -536,6 +549,13 @@ def parse_price_usd(value: str) -> int | None:
         return None
     digits = re.sub(r"[^\d]", "", match.group(0))
     return int(digits) if digits else None
+
+
+def build_landhub_map_url(cadastral: str) -> str:
+    value = str(cadastral or "").strip()
+    if not value:
+        return ""
+    return f"{LANDHUB_MAP_BASE_URL}?{urlencode({'cad': value})}"
 
 
 def extract_file_url(property_value: dict[str, Any] | None) -> str:

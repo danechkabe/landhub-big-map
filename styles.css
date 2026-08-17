@@ -325,6 +325,12 @@ body {
   gap: 7px;
 }
 
+.parcel-shape-details {
+  display: grid;
+  gap: 7px;
+  margin: 0 0 10px;
+}
+
 .detail-row,
 .price-card {
   display: grid;
@@ -347,6 +353,7 @@ body {
 .detail-row strong {
   font-size: 18px;
   line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .photo-grid {
