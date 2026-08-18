@@ -341,15 +341,20 @@ def normalize_page(
     area_sotky = extract_number_value(properties.get("Area Sotky"))
     if area_sotky is None:
         area_sotky = parse_area_sotky(area_text)
+    purpose_code = extract_property_text(properties.get("Цільове призначення"))
+    purpose_name = extract_property_text(properties.get("Цільове призначення назва"))
 
     return {
         "id": str(page.get("id") or ""),
         "source": source_key,
         "name": (name or "Без назви").strip(),
+        "parcel_id": extract_property_text(properties.get("Parcel ID")),
         "cadastral": extract_rich_text(properties.get("Кадастровий номер")).strip(),
         "area": (area_text or "—").strip(),
         "area_sotky": area_sotky,
-        "purpose": (extract_rich_text(properties.get("Цільове призначення")) or "—").strip(),
+        "purpose": (purpose_code or "—").strip(),
+        "purpose_code": purpose_code,
+        "purpose_name": purpose_name,
         "distance_to_kyiv": (extract_rich_text(properties.get("до Києва")) or "—").strip(),
         "photo_url": main_photo_url,
         "extra_photo_urls": extra_photo_urls,
@@ -515,6 +520,20 @@ def extract_rich_text(property_value: dict[str, Any] | None) -> str:
     if not property_value:
         return ""
     return "".join(item.get("plain_text", "") for item in property_value.get("rich_text", []))
+
+
+def extract_property_text(property_value: dict[str, Any] | None) -> str:
+    if not property_value:
+        return ""
+    kind = property_value.get("type")
+    if kind == "title":
+        return extract_title(property_value)
+    if kind == "rich_text":
+        return extract_rich_text(property_value)
+    if kind in {"select", "status"}:
+        value = property_value.get(kind) or {}
+        return str(value.get("name") or "").strip()
+    return ""
 
 
 def extract_url(property_value: dict[str, Any] | None) -> str:

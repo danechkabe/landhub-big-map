@@ -156,6 +156,14 @@ function detailRow(label, value) {
   `;
 }
 
+function purposeValue(item) {
+  const code = String(item.purpose_code || item.purpose || "").trim();
+  const name = String(item.purpose_name || "").trim();
+  if (!code && !name) return "—";
+  const suffix = ["01.05", "01.06"].includes(code) ? " (Будівництво дозволено)" : "";
+  return [code, name ? `${name}${suffix}` : ""].filter(Boolean).join(" — ");
+}
+
 function sidesRow(value) {
   const rows = parseSides(value);
   if (!rows.length) return detailRow("Сторони", value);
@@ -246,8 +254,9 @@ function panelMarkup(item) {
       <h2>${escapeHtml(item.name || "Без назви")}</h2>
       ${filterWarning}
       <div class="details-list">
-        ${detailRow("Кадастровий номер", item.cadastral)}
+        ${detailRow("ID Ділянки", item.parcel_id)}
         ${detailRow("Площа", item.area)}
+        ${detailRow("Цільове призначення", purposeValue(item))}
         ${detailRow("До Києва", item.distance_to_kyiv)}
       </div>
       ${photoMarkup}
