@@ -32,19 +32,9 @@ LANDMATCH_URL = (
     "https://www.notion.so/30649a17ea97804c8acac49da41511e5"
     "?v=30649a17ea9780058dd9000c82bc6059&source=copy_link"
 )
-OLX_URL = (
-    "https://www.notion.so/2ef49a17ea97803e8b20edf5611b033f"
-    "?v=2ef49a17ea9780448e2f000ca8f156c1&source=copy_link"
-)
 LANDHUB_URL = (
     "https://www.notion.so/2ef49a17ea97807b9204d95797898034"
     "?v=2ef49a17ea978095af81000cdf80f39a&source=copy_link"
-)
-OLX_STATUS_NAMES = (
-    "Дає на реалізацію",
-    "На сайт ок. Але з олх не прибере",
-    "Передзвонити",
-    "Не опрацьована",
 )
 LANDMATCH_META = {"symbol": "💛", "color": "#e0b21b"}
 PHOTO_MAX_SIDE = 1600
@@ -108,17 +98,6 @@ def main() -> int:
             database_url=LANDHUB_URL,
         ),
         NotionSource(
-            key="candidates",
-            label="Кандидати/OLX",
-            database_url=OLX_URL,
-            filter_payload={
-                "or": [
-                    {"property": "Status Даня", "status": {"equals": status}}
-                    for status in OLX_STATUS_NAMES
-                ]
-            },
-        ),
-        NotionSource(
             key="landmatch",
             label="LandMatch Parcels",
             database_url=LANDMATCH_URL,
@@ -137,13 +116,12 @@ def main() -> int:
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source": "LandMatch Parcels + Кандидати/OLX + Ділянки на реалізацію",
+        "source": "LandMatch Parcels + Ділянки на реалізацію",
         "filter": {
             "dedupe": "cadastral",
             "priority": [
                 "Rows with Фотографії",
                 "Ділянки на реалізацію",
-                "Кандидати/OLX",
                 "LandMatch Parcels",
             ],
         },
