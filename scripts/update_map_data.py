@@ -533,6 +533,16 @@ def extract_property_text(property_value: dict[str, Any] | None) -> str:
     if kind in {"select", "status"}:
         value = property_value.get(kind) or {}
         return str(value.get("name") or "").strip()
+    if kind == "formula":
+        value = property_value.get("formula") or {}
+        if value.get("type") == "string":
+            return str(value.get("string") or "").strip()
+        return ""
+    if kind == "rollup":
+        value = property_value.get("rollup") or {}
+        if value.get("type") == "array":
+            return "".join(str(item.get("plain_text") or "") for item in value.get("array") or []).strip()
+        return ""
     return ""
 
 
