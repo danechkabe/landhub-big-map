@@ -447,6 +447,11 @@ body {
   object-fit: cover;
 }
 
+.parcel-photo--gallery-last {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 10;
+}
+
 /* Let the transparent parcel plan keep its natural proportions. */
 .parcel-photo--plan {
   aspect-ratio: auto;

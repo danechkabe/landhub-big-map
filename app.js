@@ -224,7 +224,7 @@ function panelMarkup(item) {
     ? `
       <div class="photo-stack">
         ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
-        ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url) => photoButton(url, "parcel-photo--gallery")).join("")}</div>` : ""}
+        ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url, index, urls) => photoButton(url, `parcel-photo--gallery${urls.length % 2 === 1 && index === urls.length - 1 ? " parcel-photo--gallery-last" : ""}`)).join("")}</div>` : ""}
         ${photoGroups.plan ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>` : ""}
       </div>
     `
