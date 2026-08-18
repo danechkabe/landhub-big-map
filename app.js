@@ -209,17 +209,23 @@ function actionButton({ href, icon, label, modifier }) {
 }
 
 function panelMarkup(item) {
-  const photoUrls = getPhotoUrls(item);
-  const previewUrls = photoUrls.slice(0, 3);
-  const planUrl = normalizeUrl(item.plan_photo_url);
-  const photoMarkup = previewUrls.length
+  const photoGroups = getPhotoGroups(item);
+  let photoIndex = 0;
+  const photoButton = (url, modifier = "") => {
+    const index = photoIndex;
+    photoIndex += 1;
+    return `
+      <button class="parcel-photo${modifier ? ` ${modifier}` : ""}" type="button" data-photo-index="${index}" data-photo-title="${escapeHtml(item.name)}">
+        <img src="${escapeHtml(url)}" alt="${escapeHtml(item.name)}" loading="lazy" />
+      </button>
+    `;
+  };
+  const photoMarkup = photoGroups.main || photoGroups.gallery.length || photoGroups.plan
     ? `
       <div class="photo-stack">
-        ${previewUrls.map((url, index) => `
-          <button class="parcel-photo${planUrl && url === planUrl ? " parcel-photo--plan" : ""}" type="button" data-photo-index="${index}" data-photo-title="${escapeHtml(item.name)}">
-            <img src="${escapeHtml(url)}" alt="${escapeHtml(item.name)}" loading="lazy" />
-          </button>
-        `).join("")}
+        ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
+        ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url) => photoButton(url, "parcel-photo--gallery")).join("")}</div>` : ""}
+        ${photoGroups.plan ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>` : ""}
       </div>
     `
     : "";
@@ -285,24 +291,22 @@ function getFilteredItems() {
 }
 
 function getPhotoUrls(item) {
-  if (Array.isArray(item.photo_urls) && item.photo_urls.length) {
-    const urls = item.photo_urls.map(normalizeUrl).filter(Boolean);
-    const plan = normalizeUrl(item.plan_photo_url);
-    if (plan && !urls.includes(plan)) urls.splice(Math.min(1, urls.length), 0, plan);
-    return urls;
-  }
-  const urls = [];
-  const main = normalizeUrl(item.photo_url);
-  if (main) urls.push(main);
+  const groups = getPhotoGroups(item);
+  return [groups.main, ...groups.gallery, groups.plan].filter(Boolean);
+}
+
+function getPhotoGroups(item) {
+  const processed = Array.isArray(item.photo_urls)
+    ? item.photo_urls.map(normalizeUrl).filter(Boolean)
+    : [];
+  const main = processed[0] || normalizeUrl(item.photo_url);
+  const gallery = processed.slice(1);
   const plan = normalizeUrl(item.plan_photo_url);
-  if (plan) urls.push(plan);
-  if (Array.isArray(item.extra_photo_urls)) {
-    item.extra_photo_urls.forEach((url) => {
-      const normalized = normalizeUrl(url);
-      if (normalized && !urls.includes(normalized)) urls.push(normalized);
-    });
-  }
-  return urls;
+  return {
+    main,
+    gallery: gallery.filter((url) => url !== plan),
+    plan,
+  };
 }
 
 function hasParcelShapeDetails(item) {
