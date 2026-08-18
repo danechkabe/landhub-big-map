@@ -32,10 +32,6 @@ LANDMATCH_URL = (
     "https://www.notion.so/30649a17ea97804c8acac49da41511e5"
     "?v=30649a17ea9780058dd9000c82bc6059&source=copy_link"
 )
-LANDHUB_URL = (
-    "https://www.notion.so/2ef49a17ea97807b9204d95797898034"
-    "?v=2ef49a17ea978095af81000cdf80f39a&source=copy_link"
-)
 LANDMATCH_META = {"symbol": "💛", "color": "#e0b21b"}
 PHOTO_MAX_SIDE = 1600
 PHOTO_JPEG_QUALITY = 82
@@ -93,11 +89,6 @@ def main() -> int:
 
     sources = [
         NotionSource(
-            key="realization",
-            label="Ділянки на реалізацію",
-            database_url=LANDHUB_URL,
-        ),
-        NotionSource(
             key="landmatch",
             label="LandMatch Parcels",
             database_url=LANDMATCH_URL,
@@ -116,12 +107,11 @@ def main() -> int:
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source": "LandMatch Parcels + Ділянки на реалізацію",
+        "source": "LandMatch Parcels (Status: active)",
         "filter": {
             "dedupe": "cadastral",
             "priority": [
                 "Rows with Фотографії",
-                "Ділянки на реалізацію",
                 "LandMatch Parcels",
             ],
         },
