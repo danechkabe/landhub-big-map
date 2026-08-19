@@ -420,11 +420,14 @@ function setSelectedMarker(nextId) {
 
 function updateUrlForItem(item, replace = false) {
   const url = new URL(window.location.href);
-  if (item?.cadastral) {
-    url.searchParams.set("cad", item.cadastral);
+  if (item?.parcel_id) {
+    const safeParcelId = String(item.parcel_id).trim().replace(/[^A-Za-z0-9_-]/g, "");
+    url.pathname = `/property/${safeParcelId}/`;
   } else {
-    url.searchParams.delete("cad");
+    url.pathname = "/";
   }
+  url.searchParams.delete("parcel");
+  url.searchParams.delete("cad");
   const method = replace ? "replaceState" : "pushState";
   window.history[method]({}, "", url);
 }
