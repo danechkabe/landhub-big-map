@@ -66,11 +66,22 @@ body {
 }
 
 .hero-bar h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
   font-size: clamp(30px, 4vw, 48px);
   line-height: 1;
   letter-spacing: -0.04em;
   white-space: nowrap;
+}
+
+.hero-logo {
+  display: block;
+  width: 58px;
+  height: 34px;
+  object-fit: contain;
+  flex: 0 0 auto;
 }
 
 .map-counts {
@@ -741,12 +752,22 @@ body {
     justify-self: start;
   }
 
+  .page-shell {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .hero,
+  .hero-bar,
   .map-layout,
   .map-layout.panel-open {
-    flex-direction: column-reverse;
-    gap: 12px;
-    min-height: auto;
+    display: contents;
   }
+
+  .hero-title { order: 1; }
+  .parcel-panel { order: 2; }
+  .filters { order: 3; }
+  .map-card { order: 4; }
 
   .map-card,
   .map-layout.panel-open .map-card {
@@ -765,22 +786,31 @@ body {
     width: 100%;
     max-width: 100%;
     min-height: 0;
-    height: 0;
+    height: auto;
+    max-height: none;
+    overflow: visible;
     opacity: 0;
-    transform: translateY(-16px);
+    transform: none;
   }
 
   .map-layout.panel-open .parcel-panel {
-    height: min(58vh, 620px);
+    display: block;
+    height: auto;
     width: 100%;
     max-width: 100%;
     opacity: 1;
-    transform: translateY(0);
   }
 
+  .parcel-panel:not([aria-hidden="false"]) { display: none; }
+
   .panel-content {
+    height: auto;
+    overflow: visible;
+    overscroll-behavior: auto;
     padding: 16px 14px;
   }
+
+  .hero-logo { width: 48px; height: 30px; }
 
   .parcel-details h2 {
     font-size: 24px;
@@ -825,9 +855,7 @@ body {
     border-radius: 18px;
   }
 
-  .map-layout.panel-open .parcel-panel {
-    height: 64vh;
-  }
+  .map-layout.panel-open .parcel-panel { height: auto; }
 
   .details-list {
     grid-template-columns: 1fr;
