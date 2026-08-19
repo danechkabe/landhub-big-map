@@ -277,14 +277,11 @@ def normalize_page(
 ) -> dict[str, Any] | None:
     properties = page.get("properties") or {}
     map_url = extract_url(properties.get("Мапа"))
-    if not map_url:
-        return None
-
-    resolved_map_url = resolve_maps_url(map_url, session=session)
+    resolved_map_url = resolve_maps_url(map_url, session=session) if map_url else ""
     try:
         latitude, longitude = extract_coordinates_from_maps_url(resolved_map_url)
     except ValueError:
-        return None
+        latitude, longitude = None, None
 
     marker = LANDMATCH_META
     main_photo_url = extract_file_url(properties.get("Photo"))

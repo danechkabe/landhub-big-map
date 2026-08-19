@@ -458,6 +458,7 @@ function renderMarkers({ fit = true } = {}) {
 
   const bounds = [];
   items.forEach((item) => {
+    if (item.latitude == null || item.longitude == null) return;
     const lat = Number(item.latitude);
     const lng = Number(item.longitude);
     if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
