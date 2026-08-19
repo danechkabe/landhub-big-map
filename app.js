@@ -94,8 +94,8 @@ const state = {
 function normalizeUrl(url) {
   const raw = String(url ?? "").trim();
   if (!raw) return "";
+  if (raw.startsWith("./")) return `/${raw.slice(2)}`;
   if (
-    raw.startsWith("./") ||
     raw.startsWith("../") ||
     raw.startsWith("/") ||
     raw.startsWith("#") ||
