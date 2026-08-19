@@ -392,6 +392,12 @@ function findItemByCadastral(cadastral) {
   return getLandmatchItems().find((item) => String(item.cadastral || "").trim() === normalized) || null;
 }
 
+function findItemByParcelId(parcelId) {
+  const normalized = String(parcelId || "").trim().toLowerCase();
+  if (!normalized) return null;
+  return getLandmatchItems().find((item) => String(item.parcel_id || "").trim().toLowerCase() === normalized) || null;
+}
+
 function findSelectedItem() {
   return getLandmatchItems().find((item) => item.id === selectedId) || null;
 }
@@ -740,8 +746,8 @@ function registerEvents() {
 }
 
 function openInitialDeepLink() {
-  const cadastral = new URL(window.location.href).searchParams.get("cad");
-  const item = findItemByCadastral(cadastral);
+  const url = new URL(window.location.href);
+  const item = findItemByParcelId(url.searchParams.get("parcel")) || findItemByCadastral(url.searchParams.get("cad"));
   if (!item) return;
   openPanel(item, { updateUrl: true, replaceUrl: true, openSource: "deeplink" });
   if (Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))) {

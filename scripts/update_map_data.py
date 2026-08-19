@@ -7,6 +7,7 @@ import argparse
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from hashlib import sha256
+from html import escape
 import json
 import re
 import time
@@ -123,6 +124,7 @@ def main() -> int:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     photo_processor.save()
+    write_share_pages(items, output_path.parent.parent)
     print(f"Wrote {len(items)} LandMatch markers to {output_path}")
     return 0
 
@@ -312,12 +314,15 @@ def normalize_page(
     purpose_code = extract_property_text(properties.get("Цільове призначення"))
     purpose_name = extract_property_text(properties.get("Цільове призначення назва"))
 
+    parcel_id = extract_property_text(properties.get("Parcel ID"))
+    cadastral = extract_rich_text(properties.get("Кадастровий номер")).strip()
+
     return {
         "id": str(page.get("id") or ""),
         "source": source_key,
         "name": (name or "Без назви").strip(),
-        "parcel_id": extract_property_text(properties.get("Parcel ID")),
-        "cadastral": extract_rich_text(properties.get("Кадастровий номер")).strip(),
+        "parcel_id": parcel_id,
+        "cadastral": cadastral,
         "area": (area_text or "—").strip(),
         "area_sotky": area_sotky,
         "purpose": (purpose_code or "—").strip(),
@@ -334,9 +339,8 @@ def normalize_page(
         "price": (price_text or "—").strip(),
         "price_usd": parse_price_usd(price_text),
         "google_maps_url": resolved_map_url,
-        "landhub_map_url": extract_url(properties.get("map.landhub")) or build_landhub_map_url(
-            extract_rich_text(properties.get("Кадастровий номер"))
-        ),
+        "landhub_map_url": build_landhub_map_url(parcel_id, cadastral)
+        or extract_url(properties.get("map.landhub")),
         "notion_url": str(page.get("url") or "").strip(),
         "olx_url": extract_url(properties.get("Посилання на OLX")),
         "latitude": latitude,
@@ -557,11 +561,86 @@ def parse_price_usd(value: str) -> int | None:
     return int(digits) if digits else None
 
 
-def build_landhub_map_url(cadastral: str) -> str:
+def build_landhub_map_url(parcel_id: str, cadastral: str = "") -> str:
+    normalized_id = re.sub(r"[^A-Za-z0-9_-]", "", str(parcel_id or "").strip())
+    if normalized_id:
+        return f"{LANDHUB_MAP_BASE_URL.rstrip('/')}/property/{normalized_id}/"
     value = str(cadastral or "").strip()
     if not value:
         return ""
     return f"{LANDHUB_MAP_BASE_URL}?{urlencode({'cad': value})}"
+
+
+def write_share_pages(items: list[dict[str, Any]], site_root: Path) -> None:
+    """Write crawler-readable metadata pages for active parcels."""
+    pages_root = site_root / "property"
+    pages_root.mkdir(parents=True, exist_ok=True)
+    current_ids: set[str] = set()
+
+    for item in items:
+        parcel_id = re.sub(r"[^A-Za-z0-9_-]", "", str(item.get("parcel_id") or "").strip())
+        if not parcel_id:
+            continue
+        current_ids.add(parcel_id)
+        page_dir = pages_root / parcel_id
+        page_dir.mkdir(parents=True, exist_ok=True)
+        page_url = f"{LANDHUB_MAP_BASE_URL.rstrip('/')}/property/{parcel_id}/"
+        redirect_url = f"../../?parcel={urlencode({'value': parcel_id})[6:]}"
+        name = str(item.get("name") or "").strip()
+        area = str(item.get("area") or "").strip()
+        price = str(item.get("price") or "").strip()
+        title_parts = [f"Ділянка в {name}" if name and name != "Без назви" else "Ділянка"]
+        title_parts.extend(value for value in (area, price) if value and value != "—")
+        title = " · ".join(title_parts)
+        description = " · ".join(value for value in (area, price) if value and value != "—")
+        image_path = str((item.get("photo_urls") or [""])[0] or "").strip()
+        if image_path.startswith("./"):
+            image_url = f"{LANDHUB_MAP_BASE_URL.rstrip('/')}/{image_path[2:]}"
+        elif image_path.startswith("/"):
+            image_url = f"{LANDHUB_MAP_BASE_URL.rstrip('/')}{image_path}"
+        elif image_path.startswith("http"):
+            image_url = image_path
+        else:
+            image_url = f"{LANDHUB_MAP_BASE_URL.rstrip('/')}/assets/landhub-hearts.png"
+
+        html = f'''<!doctype html>
+<html lang="uk">
+<head>
+  <meta charset="utf-8">
+  <title>{escape(title)}</title>
+  <meta name="description" content="{escape(description, quote=True)}">
+  <link rel="canonical" href="{escape(page_url, quote=True)}">
+  <meta property="og:title" content="{escape(title, quote=True)}">
+  <meta property="og:description" content="{escape(description, quote=True)}">
+  <meta property="og:image" content="{escape(image_url, quote=True)}">
+  <meta property="og:url" content="{escape(page_url, quote=True)}">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="{escape(title, quote=True)}">
+  <meta name="twitter:image" content="{escape(image_url, quote=True)}">
+  <meta http-equiv="refresh" content="0;url={escape(redirect_url, quote=True)}">
+  <script>location.replace({json.dumps(redirect_url)});</script>
+</head>
+<body><a href="{escape(redirect_url, quote=True)}">Відкрити ділянку</a></body>
+</html>
+'''
+        (page_dir / "index.html").write_text(html, encoding="utf-8")
+
+    manifest_path = pages_root / ".generated-pages.json"
+    previous_ids: list[str] = []
+    if manifest_path.exists():
+        try:
+            previous_ids = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            previous_ids = []
+    for stale_id in previous_ids:
+        if stale_id not in current_ids:
+            stale_dir = pages_root / str(stale_id)
+            if stale_dir.is_dir():
+                for child in stale_dir.iterdir():
+                    child.unlink()
+                stale_dir.rmdir()
+    manifest_path.write_text(json.dumps(sorted(current_ids), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def extract_file_url(property_value: dict[str, Any] | None) -> str:

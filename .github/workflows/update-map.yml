@@ -45,12 +45,12 @@ jobs:
 
             python scripts/update_map_data.py --token "$NOTION_TOKEN"
 
-            if git diff --quiet -- data/parcels.json data/photo_manifest.json assets/generated-photos; then
+            if git diff --quiet -- data/parcels.json data/photo_manifest.json assets/generated-photos property; then
               echo "No map changes"
               exit 0
             fi
 
-            git add data/parcels.json data/photo_manifest.json assets/generated-photos
+            git add data/parcels.json data/photo_manifest.json assets/generated-photos property
             git commit -m "Update map data"
 
             if git push origin HEAD:"$BRANCH"; then
