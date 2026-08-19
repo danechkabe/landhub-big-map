@@ -43,7 +43,23 @@ const lightboxPrevNode = document.getElementById("lightbox-prev");
 const lightboxNextNode = document.getElementById("lightbox-next");
 
 let dataset = { categories: { landmatch: [] } };
-let markerLayer = L.layerGroup().addTo(map);
+let markerLayer = L.markerClusterGroup({
+  showCoverageOnHover: false,
+  maxClusterRadius: 48,
+  zoomToBoundsOnClick: true,
+  spiderfyOnMaxZoom: true,
+  animate: true,
+  iconCreateFunction(cluster) {
+    const count = cluster.getChildCount();
+    const size = count >= 50 ? "large" : count >= 10 ? "medium" : "small";
+    const dimension = count >= 50 ? 48 : count >= 10 ? 42 : 36;
+    return L.divIcon({
+      html: `<div class="marker-cluster marker-cluster--${size}">${count}</div>`,
+      className: "marker-cluster-wrapper",
+      iconSize: [dimension, dimension],
+    });
+  },
+}).addTo(map);
 let markerRefs = new Map();
 let selectedId = "";
 let lightboxScale = 1;
@@ -94,6 +110,14 @@ function formatArea(value) {
 
 function formatPrice(value) {
   return `${Math.round(value).toLocaleString("uk-UA")}$`;
+}
+
+function formatDistanceForSite(value) {
+  const raw = String(value ?? "").replace(",", ".");
+  const match = raw.match(/-?\d+(?:\.\d+)?/);
+  if (!match) return String(value || "—");
+  const distance = Math.max(0, Number(match[0]) - 15);
+  return `${Math.floor(distance / 5) * 5} км`;
 }
 
 function formatParcelCount(count) {
@@ -251,13 +275,13 @@ function panelMarkup(item) {
 
   return `
     <article class="parcel-details">
-      <h2>${escapeHtml(item.name || "Без назви")}</h2>
+      <h2>${escapeHtml(item.name || "Без назви")} <span class="panel-title-heart" aria-label="Активна ділянка">💙</span></h2>
       ${filterWarning}
       <div class="details-list">
         ${detailRow("ID Ділянки", item.parcel_id)}
         ${detailRow("Площа", item.area)}
         ${detailRow("Цільове призначення", purposeValue(item))}
-        ${detailRow("До Києва", item.distance_to_kyiv)}
+        ${detailRow("До Києва", formatDistanceForSite(item.distance_to_kyiv))}
       </div>
       ${photoMarkup}
       ${parcelShapeMarkup}
@@ -362,6 +386,7 @@ function setSelectedMarker(nextId) {
   if (selectedId && markerRefs.has(selectedId)) {
     const previous = markerRefs.get(selectedId);
     previous.marker.setIcon(markerIcon(previous.item, false));
+    previous.marker.setZIndexOffset(0);
   }
 
   selectedId = nextId || "";
@@ -369,6 +394,7 @@ function setSelectedMarker(nextId) {
   if (selectedId && markerRefs.has(selectedId)) {
     const current = markerRefs.get(selectedId);
     current.marker.setIcon(markerIcon(current.item, true));
+    current.marker.setZIndexOffset(10000);
   }
 }
 
@@ -421,7 +447,7 @@ function renderMarkers({ fit = true } = {}) {
       riseOnHover: true,
     });
     marker.on("click", () => openPanel(item));
-    marker.addTo(markerLayer);
+    markerLayer.addLayer(marker);
     markerRefs.set(item.id, { marker, item });
     bounds.push([lat, lng]);
   });
@@ -532,6 +558,7 @@ function closeLightbox() {
 
 function applyLightboxTransform() {
   lightboxImageNode.style.transform = `translate(${lightboxOffset.x}px, ${lightboxOffset.y}px) scale(${lightboxScale})`;
+  lightboxZoomResetNode.textContent = `${Math.round(lightboxScale * 100)}%`;
 }
 
 function zoomLightbox(delta) {
@@ -608,8 +635,16 @@ function registerEvents() {
   lightboxZoomInNode.addEventListener("click", () => zoomLightbox(0.25));
   lightboxZoomOutNode.addEventListener("click", () => zoomLightbox(-0.25));
   lightboxZoomResetNode.addEventListener("click", resetLightboxZoom);
-  lightboxPrevNode.addEventListener("click", () => showLightboxPhoto(lightboxIndex - 1));
-  lightboxNextNode.addEventListener("click", () => showLightboxPhoto(lightboxIndex + 1));
+  lightboxPrevNode.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    showLightboxPhoto(lightboxIndex - 1);
+  });
+  lightboxNextNode.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    showLightboxPhoto(lightboxIndex + 1);
+  });
   lightboxNode.addEventListener("click", (event) => {
     if (event.target === lightboxNode) closeLightbox();
   });

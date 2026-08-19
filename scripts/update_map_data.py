@@ -291,7 +291,7 @@ def normalize_page(
         url for url in extra_photo_urls if url and url != main_photo_url
     ]
     photo_urls = [
-        photo_processor.process(url, page_id=str(page.get("id") or ""), index=index)
+        photo_processor.process(url, page_id=str(page.get("id") or ""), index=index, watermark=False)
         for index, url in enumerate(source_photo_urls)
     ]
     photo_urls = [url for url in photo_urls if url]

@@ -543,11 +543,9 @@ body {
   justify-content: center;
   width: 38px;
   height: 38px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--marker-accent) 18%, white);
-  box-shadow:
-    0 16px 30px rgba(98, 83, 25, 0.18),
-    0 0 0 7px color-mix(in srgb, var(--marker-accent) 18%, transparent);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
   font-size: 24px;
   line-height: 1;
   transition:
@@ -558,6 +556,35 @@ body {
 
 .emoji-pin:hover {
   transform: scale(1.07);
+}
+
+.marker-cluster-wrapper {
+  background: transparent;
+  border: 0;
+}
+
+.marker-cluster {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #e0b21b;
+  border: 2px solid #fffdf5;
+  color: #172116;
+  font-size: 14px;
+  font-weight: 900;
+  box-shadow: 0 8px 18px rgba(65, 62, 22, 0.22);
+}
+
+.marker-cluster--medium { width: 42px; height: 42px; }
+.marker-cluster--large { width: 48px; height: 48px; }
+
+.panel-title-heart {
+  display: inline-block;
+  margin-left: 0.12em;
+  font-size: 0.62em;
+  vertical-align: 0.2em;
 }
 
 .photo-lightbox {
