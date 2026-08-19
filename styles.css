@@ -755,6 +755,7 @@ body {
   .page-shell {
     display: flex;
     flex-direction: column;
+    gap: 14px;
   }
 
   .hero,
@@ -813,7 +814,16 @@ body {
   .hero-logo { width: 48px; height: 30px; }
 
   .parcel-details h2 {
-    font-size: 24px;
+    max-width: none;
+    text-align: center;
+    font-size: 34px;
+    line-height: 1;
+  }
+
+  .filters .map-counts {
+    order: -1;
+    margin: 0 0 2px;
+    text-align: center;
   }
 
   .details-list {

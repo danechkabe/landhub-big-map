@@ -19,6 +19,8 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const layoutNode = document.getElementById("map-layout");
 const panelNode = document.getElementById("parcel-panel");
 const panelContentNode = document.getElementById("panel-content");
+const heroTitleNode = document.querySelector(".hero-title");
+const filtersNode = document.querySelector(".filters");
 const panelCloseNode = document.getElementById("panel-close");
 const areaMinInput = document.getElementById("area-min");
 const areaMaxInput = document.getElementById("area-max");
@@ -68,6 +70,18 @@ let lightboxDrag = null;
 let lightboxSwipe = null;
 let lightboxPhotos = [];
 let lightboxIndex = 0;
+
+function syncMobileHeaderLayout() {
+  if (!mapCountsNode || !heroTitleNode || !filtersNode) return;
+  const mobile = window.matchMedia("(max-width: 960px)").matches;
+  if (mobile) {
+    if (mapCountsNode.parentElement !== filtersNode) {
+      filtersNode.prepend(mapCountsNode);
+    }
+  } else if (mapCountsNode.parentElement !== heroTitleNode) {
+    heroTitleNode.append(mapCountsNode);
+  }
+}
 
 const state = {
   areaMin: FILTERS.area.min,
@@ -577,6 +591,8 @@ function resetLightboxZoom() {
 }
 
 function registerEvents() {
+  syncMobileHeaderLayout();
+  window.addEventListener("resize", syncMobileHeaderLayout, { passive: true });
   panelCloseNode.addEventListener("click", () => closePanel());
   areaMinInput.addEventListener("input", () => handleFilterInput("area", "min"));
   areaMaxInput.addEventListener("input", () => handleFilterInput("area", "max"));
