@@ -386,7 +386,7 @@ function setSelectedMarker(nextId) {
   if (selectedId && markerRefs.has(selectedId)) {
     const previous = markerRefs.get(selectedId);
     previous.marker.setIcon(markerIcon(previous.item, false));
-    previous.marker.setZIndexOffset(0);
+    previous.marker.setZIndexOffset(previous.item.has_verified_photos ? 2000 : 0);
   }
 
   selectedId = nextId || "";
@@ -444,6 +444,7 @@ function renderMarkers({ fit = true } = {}) {
 
     const marker = L.marker([lat, lng], {
       icon: markerIcon(item, item.id === selectedId),
+      zIndexOffset: item.id === selectedId ? 10000 : item.has_verified_photos ? 2000 : 0,
       riseOnHover: true,
     });
     marker.on("click", () => openPanel(item));
