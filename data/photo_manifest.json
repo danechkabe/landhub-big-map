@@ -1121,6 +1121,12 @@
     "local_path": "assets/generated-photos/36149a17ea978180-0-2a4a046c9811122f0313c5f5.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/452e6f39-466b-4484-92f2-a73307993e4e/7264488860_713f038a2e16462e.png"
   },
+  "2a4b26ed164b43a4d2ead5ba": {
+    "cache_key": "2a4b26ed164b43a4d2ead5ba",
+    "created_at": "2026-08-19T17:54:42.817321Z",
+    "local_path": "assets/generated-photos/36949a17ea97810a-0-2a4b26ed164b43a4d2ead5ba.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/fd5df029-e566-4f93-abe5-1ed687a94e1d/kadastr-map.png"
+  },
   "2ad1a260b5adfef29f7bcfd3": {
     "cache_key": "2ad1a260b5adfef29f7bcfd3",
     "created_at": "2026-05-25T10:49:20.327714Z",
@@ -4361,6 +4367,12 @@
     "local_path": "assets/generated-photos/36149a17ea978194-0-abe364ce5b7a13201097a454.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/c9599df9-6099-4847-a34c-0d7ca3de71a2/kadastr-map.png"
   },
+  "ac33fc26c6a8327834adafb4": {
+    "cache_key": "ac33fc26c6a8327834adafb4",
+    "created_at": "2026-08-19T17:54:41.515754Z",
+    "local_path": "assets/generated-photos/36a49a17ea978187-0-ac33fc26c6a8327834adafb4.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/aa599cf6-c54f-43e2-9ff6-6245e13e1c17/kadastr-map.png"
+  },
   "ac89a5b514440b39acd6034b": {
     "cache_key": "ac89a5b514440b39acd6034b",
     "created_at": "2026-05-25T10:49:23.174657Z",
@@ -6352,6 +6364,12 @@
     "created_at": "2026-08-19T10:44:42.236904Z",
     "local_path": "assets/generated-photos/36a49a17ea9781ae-0-fc4422a5422e0ddaa357064b.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/3f86f737-a60a-4ada-bdc4-6b9508c80269/kadastr-map.png"
+  },
+  "fc5e0b4c362563ddc086f1f0": {
+    "cache_key": "fc5e0b4c362563ddc086f1f0",
+    "created_at": "2026-08-19T17:54:40.239275Z",
+    "local_path": "assets/generated-photos/36a49a17ea9781f4-0-fc5e0b4c362563ddc086f1f0.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/e7d7b1d5-6f11-41a1-a876-d6be6c2109d1/kadastr-map.png"
   },
   "fc6be6a64c8720d5750e3583": {
     "cache_key": "fc6be6a64c8720d5750e3583",
