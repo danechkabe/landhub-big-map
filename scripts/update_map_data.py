@@ -293,13 +293,13 @@ def normalize_page(
         photo_processor.process(url, page_id=str(page.get("id") or ""), index=index, watermark=False)
         for index, url in enumerate(source_photo_urls)
     ]
-    photo_urls = [url for url in photo_urls if url]
-    plan_photo_url = photo_processor.process(
+    photo_urls = [site_asset_url(url) for url in photo_urls if url]
+    plan_photo_url = site_asset_url(photo_processor.process(
         extract_file_url(properties.get("План ділянки")),
         page_id=str(page.get("id") or ""),
         index=1000,
         watermark=False,
-    )
+    ))
     name = extract_title(properties.get("Name"))
     if not name:
         name = extract_title(properties.get("Назва села/ділянки"))
@@ -566,6 +566,11 @@ def build_landhub_map_url(parcel_id: str, cadastral: str = "") -> str:
     if not value:
         return ""
     return f"{LANDHUB_MAP_BASE_URL}?{urlencode({'cad': value})}"
+
+
+def site_asset_url(value: str) -> str:
+    raw = str(value or "").strip()
+    return f"/{raw[2:]}" if raw.startswith("./") else raw
 
 
 def write_share_pages(items: list[dict[str, Any]], site_root: Path) -> None:
