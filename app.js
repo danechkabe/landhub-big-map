@@ -248,7 +248,7 @@ function actionButton({ href, icon, label, modifier }) {
       aria-label="${escapeHtml(label)}"
       title="${escapeHtml(label)}"
     >
-      <img src="./assets/${escapeHtml(icon)}" alt="" />
+      <img src="/assets/${escapeHtml(icon)}" alt="" />
       <span>${escapeHtml(label)}</span>
     </a>
   `;
