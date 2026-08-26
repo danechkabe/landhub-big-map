@@ -62,6 +62,7 @@ let markerLayer = L.markerClusterGroup({
     });
   },
 }).addTo(map);
+let selectedMarkerLayer = L.layerGroup().addTo(map);
 let markerRefs = new Map();
 let selectedId = "";
 let lightboxScale = 1;
@@ -403,19 +404,8 @@ function findSelectedItem() {
 }
 
 function setSelectedMarker(nextId) {
-  if (selectedId && markerRefs.has(selectedId)) {
-    const previous = markerRefs.get(selectedId);
-    previous.marker.setIcon(markerIcon(previous.item, false));
-    previous.marker.setZIndexOffset(previous.item.has_verified_photos ? 2000 : 0);
-  }
-
   selectedId = nextId || "";
-
-  if (selectedId && markerRefs.has(selectedId)) {
-    const current = markerRefs.get(selectedId);
-    current.marker.setIcon(markerIcon(current.item, true));
-    current.marker.setZIndexOffset(10000);
-  }
+  renderMarkers({ fit: false });
 }
 
 function updateUrlForItem(item, replace = false) {
@@ -437,6 +427,12 @@ function openPanel(item, { updateUrl = true, replaceUrl = false, openSource = "m
   panelNode.setAttribute("aria-hidden", "false");
   layoutNode.classList.add("panel-open");
   setSelectedMarker(item.id);
+  if (Number.isFinite(Number(item.latitude)) && Number.isFinite(Number(item.longitude))) {
+    map.flyTo([Number(item.latitude), Number(item.longitude)], Math.max(map.getZoom(), 14), {
+      animate: true,
+      duration: 0.7,
+    });
+  }
   if (updateUrl) updateUrlForItem(item, replaceUrl);
   trackParcelOpen(item, openSource);
   window.setTimeout(() => map.invalidateSize({ animate: true }), 260);
@@ -452,8 +448,13 @@ function closePanel({ updateUrl = true } = {}) {
 
 function renderMarkers({ fit = true } = {}) {
   markerLayer.clearLayers();
+  selectedMarkerLayer.clearLayers();
   markerRefs = new Map();
   const items = getFilteredItems();
+  const selectedItem = findSelectedItem();
+  if (selectedItem && !items.some((item) => item.id === selectedItem.id)) {
+    items.unshift(selectedItem);
+  }
 
   if (items.length === 0) {
     return;
@@ -472,7 +473,11 @@ function renderMarkers({ fit = true } = {}) {
       riseOnHover: true,
     });
     marker.on("click", () => openPanel(item));
-    markerLayer.addLayer(marker);
+    if (item.id === selectedId) {
+      selectedMarkerLayer.addLayer(marker);
+    } else {
+      markerLayer.addLayer(marker);
+    }
     markerRefs.set(item.id, { marker, item });
     bounds.push([lat, lng]);
   });
