@@ -443,6 +443,11 @@ function closePanel({ updateUrl = true } = {}) {
   layoutNode.classList.remove("panel-open");
   setSelectedMarker("");
   if (updateUrl) updateUrlForItem(null);
+  const zoomOutLevel = Math.max(map.getMinZoom(), map.getZoom() - 3);
+  map.flyTo(map.getCenter(), zoomOutLevel, {
+    animate: true,
+    duration: 0.7,
+  });
   window.setTimeout(() => map.invalidateSize({ animate: true }), 260);
 }
 
