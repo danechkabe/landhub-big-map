@@ -413,13 +413,22 @@ function updateUrlForItem(item, replace = false) {
   if (item?.parcel_id) {
     const safeParcelId = String(item.parcel_id).trim().replace(/[^A-Za-z0-9_-]/g, "");
     url.pathname = `/property/${safeParcelId}/`;
+    const version = parcelPreviewVersion(item);
+    if (version) url.searchParams.set("v", version);
   } else {
     url.pathname = "/";
+    url.searchParams.delete("v");
   }
   url.searchParams.delete("parcel");
   url.searchParams.delete("cad");
   const method = replace ? "replaceState" : "pushState";
   window.history[method]({}, "", url);
+}
+
+function parcelPreviewVersion(item) {
+  const price = Number.isFinite(Number(item?.price_usd)) ? String(Math.round(Number(item.price_usd))) : "";
+  const area = Number.isFinite(Number(item?.area_sotky)) ? String(Math.round(Number(item.area_sotky) * 100)) : "";
+  return [price, area].filter(Boolean).join("-");
 }
 
 function openPanel(item, { updateUrl = true, replaceUrl = false, openSource = "marker" } = {}) {
