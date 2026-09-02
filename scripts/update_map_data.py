@@ -303,7 +303,7 @@ def normalize_page(
     name = extract_title(properties.get("Name"))
     if not name:
         name = extract_title(properties.get("Назва села/ділянки"))
-    price_text = extract_rich_text(properties.get("Ціна")) or extract_rich_text(properties.get("Наша ціна"))
+    price_text = extract_rich_text(properties.get("Наша ціна")) or extract_rich_text(properties.get("Ціна"))
     area_text = extract_rich_text(properties.get("Площа"))
     area_sotky = extract_number_value(properties.get("Area Sotky"))
     if area_sotky is None:
