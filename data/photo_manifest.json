@@ -449,6 +449,12 @@
     "local_path": "assets/generated-photos/3a049a17ea9781c4-0-0f00b5d5d0c3f1be530bb2e9.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/15c3403c-f534-4fe7-93d9-41626521dcc0/7264488860_0874d3f5f47e4d70.png"
   },
+  "0f2a7097219a3fbf50f087e1": {
+    "cache_key": "0f2a7097219a3fbf50f087e1",
+    "created_at": "2026-09-07T10:52:37.621204Z",
+    "local_path": "assets/generated-photos/3b249a17ea978159-0-0f2a7097219a3fbf50f087e1.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/f5149a46-ccf9-47f0-996e-bbdcc2a74f6d/7264488860_793a7e51b24f43dd.png"
+  },
   "0f375ebc140779195c3a58e5": {
     "cache_key": "0f375ebc140779195c3a58e5",
     "created_at": "2026-08-19T10:46:22.186569Z",
@@ -4205,6 +4211,12 @@
     "local_path": "assets/generated-photos/30c49a17ea97807c-4-8d6749bc517f63fd82179b1b.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/a36c7979-b1a0-40ab-b588-2dc28cb20366/drive-1MlEukTISTVXVGXZ3Wf4d5KriXuQZivcZ.jpg"
   },
+  "8dc347b1ee1d14792af43b42": {
+    "cache_key": "8dc347b1ee1d14792af43b42",
+    "created_at": "2026-09-07T10:52:39.887564Z",
+    "local_path": "assets/generated-photos/3a149a17ea9781b2-0-8dc347b1ee1d14792af43b42.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/68c0d944-d8aa-44ac-b219-2b84cc21ea3c/7264488860_297f59e3c3b546ec.png"
+  },
   "8e0267de93b7adc632c5d3b6": {
     "cache_key": "8e0267de93b7adc632c5d3b6",
     "created_at": "2026-05-22T07:59:18.028415Z",
@@ -4774,6 +4786,12 @@
     "created_at": "2026-08-19T10:45:26.620469Z",
     "local_path": "assets/generated-photos/33d49a17ea978193-0-a1538e070502136f90aafc1f.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/a6fc3356-c044-4bf8-8629-e768dd9463ef/7264488860_4458e96b19a54018.png"
+  },
+  "a15e2a66fbb7e4b40d7e5f1b": {
+    "cache_key": "a15e2a66fbb7e4b40d7e5f1b",
+    "created_at": "2026-09-07T10:52:38.658970Z",
+    "local_path": "assets/generated-photos/3a349a17ea9781f5-0-a15e2a66fbb7e4b40d7e5f1b.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/fb3f57d7-f0fe-4b49-b347-b9c82579708f/7264488860_2733ac758c244eb2.png"
   },
   "a1897d0854c1d9cb02100605": {
     "cache_key": "a1897d0854c1d9cb02100605",
