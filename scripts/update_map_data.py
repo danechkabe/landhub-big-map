@@ -93,7 +93,12 @@ def main() -> int:
             key="landmatch",
             label="LandMatch Parcels",
             database_url=LANDMATCH_URL,
-            filter_payload={"property": "Status", "select": {"equals": "active"}},
+            filter_payload={
+                "or": [
+                    {"property": "Status", "select": {"equals": "active"}},
+                    {"property": "Status", "select": {"equals": "exclusive"}},
+                ]
+            },
         ),
     ]
     items = dedupe_by_cadastral(
@@ -108,7 +113,7 @@ def main() -> int:
 
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
-        "source": "LandMatch Parcels (Status: active)",
+        "source": "LandMatch Parcels (Status: active/exclusive)",
         "filter": {
             "dedupe": "cadastral",
             "priority": [
