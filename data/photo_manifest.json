@@ -611,6 +611,12 @@
     "local_path": "assets/generated-photos/36349a17ea9781b0-0-13a92f81d1559f43541c67df.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/2a059ce4-5840-4089-8e21-1f90dd96501f/kadastr-map.png"
   },
+  "13f8914144752fd2f536334c": {
+    "cache_key": "13f8914144752fd2f536334c",
+    "created_at": "2026-09-15T09:07:33.328502Z",
+    "local_path": "assets/generated-photos/3dc49a17ea9781a4-0-13f8914144752fd2f536334c.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/c05708ae-20df-46bb-aea5-173cb5d9a2bb/7264488860_312b6ed948c34d57.png"
+  },
   "141116ffa8fad669794bdf1f": {
     "cache_key": "141116ffa8fad669794bdf1f",
     "created_at": "2026-05-22T08:02:03.728363Z",
@@ -2176,6 +2182,12 @@
     "created_at": "2026-08-17T22:46:44.004395Z",
     "local_path": "assets/generated-photos/36a49a17ea9781ae-1000-3f58cdabe0eb9f6f2fbebcc6.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/65b8e9c8-28ea-42b7-b271-06044e740647/3223186800_08_010_0033_36a49a17.png"
+  },
+  "3f857f182f8e60d99912873c": {
+    "cache_key": "3f857f182f8e60d99912873c",
+    "created_at": "2026-09-15T09:07:33.598913Z",
+    "local_path": "assets/generated-photos/3dc49a17ea9781a4-1000-3f857f182f8e60d99912873c.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/2f82c1fd-0257-45c4-b0ea-ef1f36dde762/land_plan_3221882201_19_193_0167_04e3ea72.png"
   },
   "3fab78ae7d38f9968c768313": {
     "cache_key": "3fab78ae7d38f9968c768313",
@@ -4534,6 +4546,12 @@
     "created_at": "2026-08-29T20:49:48.515349Z",
     "local_path": "assets/generated-photos/3cb49a17ea9781eb-1000-897b4e92c605adc70180928e.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/65a2a08c-9032-4139-b885-76c2abdf7bdc/land_plan_3221480201_01_057_0044_73932c40.png"
+  },
+  "898afd03010f8a6b714b5c9f": {
+    "cache_key": "898afd03010f8a6b714b5c9f",
+    "created_at": "2026-09-15T09:07:32.114140Z",
+    "local_path": "assets/generated-photos/3dc49a17ea978188-1000-898afd03010f8a6b714b5c9f.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/d8b7a856-ac3d-4fd7-bfd9-3b08f20c57e4/land_plan_3222482000_06_001_0207_819bbd44.png"
   },
   "89b6f41d6ae89d22dc84c0c7": {
     "cache_key": "89b6f41d6ae89d22dc84c0c7",
@@ -7355,6 +7373,12 @@
     "local_path": "assets/generated-photos/3bf49a17ea978109-4-df78535545f06ac0ca2fd1d5.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/faa8335f-f83e-46d1-8900-630f281747cb/landhub-photo-4.jpg"
   },
+  "dff5314880d947af67fc8572": {
+    "cache_key": "dff5314880d947af67fc8572",
+    "created_at": "2026-09-15T09:07:31.854231Z",
+    "local_path": "assets/generated-photos/3dc49a17ea978188-0-dff5314880d947af67fc8572.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/1f2d3758-ad87-4095-bb90-c64399b59d61/7264488860_ac45fd2773aa4b0d.png"
+  },
   "dffa522c1b36c8b81dba199e": {
     "cache_key": "dffa522c1b36c8b81dba199e",
     "created_at": "2026-05-22T08:01:22.693559Z",
@@ -7366,6 +7390,12 @@
     "created_at": "2026-05-22T13:28:36.554119Z",
     "local_path": "assets/generated-photos/30c49a17ea9780f6-3-e00f7766f6420553286db287.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/9c340fab-8084-48c6-b187-6accfccc1d8d/drive-1fzlW6OOMEOPMVn8YiI-LDMODT8Hm77X-.jpg"
+  },
+  "e0146e564652ac51240364bc": {
+    "cache_key": "e0146e564652ac51240364bc",
+    "created_at": "2026-09-15T09:07:30.501341Z",
+    "local_path": "assets/generated-photos/3dc49a17ea978191-0-e0146e564652ac51240364bc.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/6b021a3b-3189-4536-8f9a-08d76126e965/7264488860_fc2c6543fae14c6d.png"
   },
   "e0245b1db4110b2c4256d72e": {
     "cache_key": "e0245b1db4110b2c4256d72e",
