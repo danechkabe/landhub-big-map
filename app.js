@@ -267,14 +267,17 @@ function panelMarkup(item) {
       </button>
     `;
   };
-  const photoMarkup = photoGroups.main || photoGroups.gallery.length || photoGroups.plan
+  const photoMarkup = photoGroups.main || photoGroups.gallery.length
     ? `
       <div class="photo-stack">
         ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
         ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url, index, urls) => photoButton(url, `parcel-photo--gallery${urls.length % 2 === 1 && index === urls.length - 1 ? " parcel-photo--gallery-last" : ""}`)).join("")}</div>` : ""}
-        ${photoGroups.plan ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>` : ""}
       </div>
     `
+    : "";
+  const videoMarkup = videoEmbedMarkup(item.video_url);
+  const planMarkup = photoGroups.plan
+    ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>`
     : "";
   const parcelShapeMarkup = hasParcelShapeDetails(item)
     ? `
@@ -299,6 +302,8 @@ function panelMarkup(item) {
         ${detailRow("До Києва", formatDistanceForSite(item.distance_to_kyiv))}
       </div>
       ${photoMarkup}
+      ${videoMarkup}
+      ${planMarkup}
       ${parcelShapeMarkup}
       <div class="price-card">
         <span>Ціна</span>
@@ -326,6 +331,51 @@ function panelMarkup(item) {
       </div>
     </article>
   `;
+}
+
+function videoEmbedMarkup(url) {
+  const embedUrl = youtubeEmbedUrl(url);
+  if (!embedUrl) return "";
+  const watchUrl = normalizeUrl(url);
+  return `
+    <section class="parcel-video" aria-label="Відео ділянки">
+      <iframe
+        src="${escapeHtml(embedUrl)}"
+        title="Відео ділянки"
+        loading="lazy"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        allowfullscreen
+      ></iframe>
+      <a href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer">Відкрити на YouTube</a>
+    </section>
+  `;
+}
+
+function youtubeEmbedUrl(url) {
+  const raw = normalizeUrl(url);
+  if (!raw) return "";
+  let parsed;
+  try {
+    parsed = new URL(raw);
+  } catch (_) {
+    return "";
+  }
+
+  const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+  let videoId = "";
+  if (host === "youtu.be") {
+    videoId = parsed.pathname.split("/").filter(Boolean)[0] || "";
+  } else if (host === "youtube.com" || host === "m.youtube.com") {
+    const parts = parsed.pathname.split("/").filter(Boolean);
+    if (parts[0] === "shorts" || parts[0] === "embed") {
+      videoId = parts[1] || "";
+    } else if (parts[0] === "watch") {
+      videoId = parsed.searchParams.get("v") || "";
+    }
+  }
+
+  if (!/^[A-Za-z0-9_-]{6,}$/.test(videoId)) return "";
+  return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
 }
 
 function getLandmatchItems() {

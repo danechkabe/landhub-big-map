@@ -464,6 +464,33 @@ body {
   aspect-ratio: 16 / 10;
 }
 
+.parcel-video {
+  display: grid;
+  gap: 8px;
+}
+
+.parcel-video iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 20px;
+  background: #111;
+  box-shadow: 0 16px 30px rgba(35, 38, 20, 0.12);
+}
+
+.parcel-video a {
+  justify-self: start;
+  color: var(--accent-line);
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.parcel-video a:hover {
+  text-decoration: underline;
+}
+
 /* Let the transparent parcel plan keep its natural proportions. */
 .parcel-photo--plan {
   aspect-ratio: auto;

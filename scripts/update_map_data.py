@@ -335,6 +335,7 @@ def normalize_page(
         "extra_photo_urls": extra_photo_urls,
         "photo_urls": photo_urls,
         "plan_photo_url": plan_photo_url,
+        "video_url": extract_url(properties.get("Відео")),
         "perimeter": (extract_rich_text(properties.get("Периметр")) or "—").strip(),
         "sides": (extract_rich_text(properties.get("Сторони")) or "—").strip(),
         "has_verified_photos": bool(extra_photo_urls),
