@@ -337,8 +337,9 @@ function videoEmbedMarkup(url) {
   const embedUrl = youtubeEmbedUrl(url);
   if (!embedUrl) return "";
   const watchUrl = normalizeUrl(url);
+  const orientationClass = isYoutubeShortsUrl(url) ? " parcel-video--shorts" : "";
   return `
-    <section class="parcel-video" aria-label="Відео ділянки">
+    <section class="parcel-video${orientationClass}" aria-label="Відео ділянки">
       <iframe
         src="${escapeHtml(embedUrl)}"
         title="Відео ділянки"
@@ -376,6 +377,18 @@ function youtubeEmbedUrl(url) {
 
   if (!/^[A-Za-z0-9_-]{6,}$/.test(videoId)) return "";
   return `https://www.youtube-nocookie.com/embed/${encodeURIComponent(videoId)}`;
+}
+
+function isYoutubeShortsUrl(url) {
+  const raw = normalizeUrl(url);
+  if (!raw) return false;
+  try {
+    const parsed = new URL(raw);
+    const host = parsed.hostname.replace(/^www\./, "").toLowerCase();
+    return (host === "youtube.com" || host === "m.youtube.com") && parsed.pathname.split("/").filter(Boolean)[0] === "shorts";
+  } catch (_) {
+    return false;
+  }
 }
 
 function getLandmatchItems() {
