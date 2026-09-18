@@ -467,6 +467,7 @@ body {
 .parcel-video {
   display: grid;
   gap: 8px;
+  margin: 8px 0 14px;
 }
 
 .parcel-video iframe {
@@ -480,9 +481,8 @@ body {
 }
 
 .parcel-video--shorts iframe {
-  width: min(100%, 260px);
+  width: 100%;
   aspect-ratio: 9 / 16;
-  justify-self: center;
 }
 
 .parcel-video a {
