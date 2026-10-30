@@ -11153,6 +11153,12 @@
     "local_path": "assets/generated-photos/32d49a17ea978168-1000-fd60b3b0e9240bff80152f49.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/87d2e755-e509-4765-a8b3-9c4caf69f4ba/land_plan_3221485601_01_004_0125.png"
   },
+  "fd62253b0268244fdf94dc6b": {
+    "cache_key": "fd62253b0268244fdf94dc6b",
+    "created_at": "2026-10-30T01:08:37.955587Z",
+    "local_path": "assets/generated-photos/36249a17ea97817a-0-fd62253b0268244fdf94dc6b.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/268c29d4-c4c5-4825-a888-52ff7eb75d0b/kadastr-map.png"
+  },
   "fd940e7404272703be0612c3": {
     "cache_key": "fd940e7404272703be0612c3",
     "created_at": "2026-08-19T10:45:57.335653Z",
