@@ -267,12 +267,12 @@ function panelMarkup(item) {
       </button>
     `;
   };
-  const photoMarkup = photoGroups.main || photoGroups.gallery.length || photoGroups.plan
+  const mainPhotoMarkup = photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : "";
+  const photoMarkup = photoGroups.gallery.length || photoGroups.plan
     ? `
       <details class="parcel-media">
         <summary>Фото</summary>
         <div class="photo-stack">
-          ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
           ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url, index, urls) => photoButton(url, `parcel-photo--gallery${urls.length % 2 === 1 && index === urls.length - 1 ? " parcel-photo--gallery-last" : ""}`)).join("")}</div>` : ""}
           ${photoGroups.plan ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>` : ""}
         </div>
@@ -302,13 +302,14 @@ function panelMarkup(item) {
         ${detailRow("Цільове призначення", purposeValue(item))}
         ${detailRow("До Києва", formatDistanceForSite(item.distance_to_kyiv))}
       </div>
-      ${photoMarkup}
-      ${videoMarkup}
-      ${parcelShapeMarkup}
       <div class="price-card">
         <span>Ціна</span>
         <strong>${escapeHtml(item.price || "—")}</strong>
       </div>
+      ${mainPhotoMarkup}
+      ${photoMarkup}
+      ${videoMarkup}
+      ${parcelShapeMarkup}
       <div class="panel-actions">
         ${actionButton({
           href: item.google_maps_url,
@@ -413,8 +414,10 @@ function getPhotoGroups(item) {
   const processed = Array.isArray(item.photo_urls)
     ? item.photo_urls.map(normalizeUrl).filter(Boolean)
     : [];
-  const main = processed[0] || normalizeUrl(item.photo_url);
-  const gallery = processed.slice(1);
+  // Processed photos start with Photo only when that source column is populated.
+  const hasMainPhoto = Boolean(normalizeUrl(item.photo_url));
+  const main = hasMainPhoto ? processed[0] || normalizeUrl(item.photo_url) : "";
+  const gallery = hasMainPhoto ? processed.slice(1) : processed;
   const plan = normalizeUrl(item.plan_photo_url);
   return {
     main,
