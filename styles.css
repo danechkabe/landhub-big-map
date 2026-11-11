@@ -403,6 +403,31 @@ body {
   white-space: nowrap;
 }
 
+.parcel-media {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(26, 33, 20, 0.08);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.parcel-media > summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.parcel-media > summary:focus-visible {
+  outline: 2px solid var(--accent-line);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.parcel-media[open] > summary {
+  margin-bottom: 10px;
+}
+
 .photo-stack {
   display: grid;
   min-height: 0;

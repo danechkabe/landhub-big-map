@@ -267,18 +267,19 @@ function panelMarkup(item) {
       </button>
     `;
   };
-  const photoMarkup = photoGroups.main || photoGroups.gallery.length
+  const photoMarkup = photoGroups.main || photoGroups.gallery.length || photoGroups.plan
     ? `
-      <div class="photo-stack">
-        ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
-        ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url, index, urls) => photoButton(url, `parcel-photo--gallery${urls.length % 2 === 1 && index === urls.length - 1 ? " parcel-photo--gallery-last" : ""}`)).join("")}</div>` : ""}
-      </div>
+      <details class="parcel-media">
+        <summary>Фото</summary>
+        <div class="photo-stack">
+          ${photoGroups.main ? `<div class="photo-main">${photoButton(photoGroups.main)}</div>` : ""}
+          ${photoGroups.gallery.length ? `<div class="photo-gallery">${photoGroups.gallery.map((url, index, urls) => photoButton(url, `parcel-photo--gallery${urls.length % 2 === 1 && index === urls.length - 1 ? " parcel-photo--gallery-last" : ""}`)).join("")}</div>` : ""}
+          ${photoGroups.plan ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>` : ""}
+        </div>
+      </details>
     `
     : "";
   const videoMarkup = videoEmbedMarkup(item.video_url);
-  const planMarkup = photoGroups.plan
-    ? `<div class="photo-plan">${photoButton(photoGroups.plan, "parcel-photo--plan")}</div>`
-    : "";
   const parcelShapeMarkup = hasParcelShapeDetails(item)
     ? `
       <div class="parcel-shape-details">
@@ -303,7 +304,6 @@ function panelMarkup(item) {
       </div>
       ${photoMarkup}
       ${videoMarkup}
-      ${planMarkup}
       ${parcelShapeMarkup}
       <div class="price-card">
         <span>Ціна</span>
@@ -339,16 +339,19 @@ function videoEmbedMarkup(url) {
   const watchUrl = normalizeUrl(url);
   const orientationClass = isYoutubeShortsUrl(url) ? " parcel-video--shorts" : "";
   return `
-    <section class="parcel-video${orientationClass}" aria-label="Відео ділянки">
-      <iframe
-        src="${escapeHtml(embedUrl)}"
-        title="Відео ділянки"
-        loading="lazy"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-        allowfullscreen
-      ></iframe>
-      <a href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer">Відкрити на YouTube</a>
-    </section>
+    <details class="parcel-media">
+      <summary>Відео</summary>
+      <section class="parcel-video${orientationClass}" aria-label="Відео ділянки">
+        <iframe
+          src="${escapeHtml(embedUrl)}"
+          title="Відео ділянки"
+          loading="lazy"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+        <a href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener noreferrer">Відкрити на YouTube</a>
+      </section>
+    </details>
   `;
 }
 
