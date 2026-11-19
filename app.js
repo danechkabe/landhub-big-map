@@ -196,8 +196,29 @@ function detailRow(label, value) {
 }
 
 function purposeValue(item) {
-  const code = String(item.purpose_code || item.purpose || "").trim();
-  const name = String(item.purpose_name || "").trim();
+  return purposeText(item.purpose_code || item.purpose, item.purpose_name);
+}
+
+function hasSecondParcel(item) {
+  return Boolean(String(item.cadastral_2 || item.purpose_code_2 || "").trim());
+}
+
+function withArea(text, area) {
+  const value = String(area || "").trim();
+  return value ? `${text} · ${value}` : text;
+}
+
+function purposeRows(item) {
+  if (!hasSecondParcel(item)) return detailRow("Цільове призначення", purposeValue(item));
+  return [
+    detailRow("Цільове призначення 1", withArea(purposeValue(item), item.area_1)),
+    detailRow("Цільове призначення 2", withArea(purposeText(item.purpose_code_2, item.purpose_name_2), item.area_2)),
+  ].join("");
+}
+
+function purposeText(rawCode, rawName) {
+  const code = String(rawCode || "").trim();
+  const name = String(rawName || "").trim();
   if (!code && !name) return "—";
   const suffix = ["01.05", "01.06"].includes(code) ? " (Будівництво дозволено)" : "";
   return [code, name ? `${name}${suffix}` : ""].filter(Boolean).join(" — ");
@@ -299,7 +320,7 @@ function panelMarkup(item) {
       <div class="details-list">
         ${detailRow("ID Ділянки", item.parcel_id)}
         ${detailRow("Площа", item.area)}
-        ${detailRow("Цільове призначення", purposeValue(item))}
+        ${purposeRows(item)}
         ${detailRow("До Києва", formatDistanceForSite(item.distance_to_kyiv))}
       </div>
       <div class="price-card">
