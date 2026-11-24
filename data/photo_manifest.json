@@ -2273,6 +2273,12 @@
     "local_path": "assets/generated-photos/3e349a17ea978167-0-2b7ad8c1cd7efa604abcdc4d.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/5e64b610-8b19-4e0f-b670-c840c96bd758/7264488860_3a04f92068b0485d.png"
   },
+  "2b7b368ad017002d29f62ca5": {
+    "cache_key": "2b7b368ad017002d29f62ca5",
+    "created_at": "2026-11-24T03:11:27.932928Z",
+    "local_path": "assets/generated-photos/36149a17ea97815e-0-2b7b368ad017002d29f62ca5.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/40fce17c-2620-4736-b4ff-9682b7026f9e/kadastr-map.png"
+  },
   "2bb5113395e0eeca212320ff": {
     "cache_key": "2bb5113395e0eeca212320ff",
     "created_at": "2026-07-14T16:56:44.736843Z",
