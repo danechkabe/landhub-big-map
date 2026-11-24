@@ -131,6 +131,12 @@
     "local_path": "assets/generated-photos/3c949a17ea97816b-5-01fd27325cbbd46413d8a9f9.jpg",
     "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/577c17c1-607a-47d3-bf89-44937481932c/landhub-photo-5.jpg"
   },
+  "021cddd72f2b11d84e5b78bb": {
+    "cache_key": "021cddd72f2b11d84e5b78bb",
+    "created_at": "2026-11-24T00:41:23.485737Z",
+    "local_path": "assets/generated-photos/36949a17ea978164-0-021cddd72f2b11d84e5b78bb.jpg",
+    "source_url_stable": "https://prod-files-secure.s3.us-west-2.amazonaws.com/6c449a17-ea97-8189-ad8c-00037b40b8d5/6cb91404-83da-4cdf-a357-4798766772ea/kadastr-map.png"
+  },
   "021ffa5f40d85c41d32ac33a": {
     "cache_key": "021ffa5f40d85c41d32ac33a",
     "created_at": "2026-10-26T05:03:30.952632Z",
